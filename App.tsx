@@ -113,9 +113,9 @@ const BackButton: React.FC<{ onClick: () => void, label: string }> = ({ onClick,
 
 const ResultCard: React.FC<{ hasData: boolean, emptyText: string, children: React.ReactNode }> = ({ hasData, emptyText, children }) => {
     return (
-        <div className={`bg-slate-800 rounded-2xl border border-slate-700 shadow-lg transition-all duration-300 overflow-hidden shrink-0 ${hasData ? 'p-5 h-32' : 'p-3'}`}>
+        <div className={`bg-slate-800 rounded-2xl border border-slate-700 shadow-lg transition-all duration-300 overflow-hidden shrink-0 ${hasData ? 'p-4' : 'p-3'}`}>
             {hasData ? (
-                <div className="h-full flex flex-col justify-center animate-in fade-in">
+                <div className="flex flex-col animate-in fade-in">
                     {children}
                 </div>
             ) : (
@@ -148,12 +148,15 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
         <h2 className="text-xl font-bold text-center text-white mb-1">{t.discountCalc.title}</h2>
         
         <ResultCard hasData={numPrice > 0} emptyText={t.discountCalc.emptyState}>
-            <div className="flex justify-between items-end pb-2 border-b border-slate-700/50 mb-2">
-                <span className="text-slate-400 text-sm">{t.discountCalc.finalPrice}</span>
-                <span className="text-3xl font-bold text-green-400 tracking-tight">
+            <div className="flex justify-between items-center mb-3">
+                <span className="text-slate-400 text-sm font-medium">{t.discountCalc.finalPrice}</span>
+                <span className="text-3xl font-bold text-green-400 tracking-tight leading-none">
                     {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-xl">{currency}</span>
                 </span>
             </div>
+            
+            <div className="w-full h-px bg-slate-700/50 mb-3"></div>
+
             <div className="flex justify-between items-center text-sm">
                 <span className="text-slate-400">{t.common.save}</span>
                 <span className="font-semibold text-blue-400">
@@ -231,22 +234,25 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
       <div className="flex flex-col gap-3 w-full">
         <h2 className="text-xl font-bold text-center text-white mb-1">{t.promoCalc.title}</h2>
         
-        <div className={`bg-slate-800 rounded-2xl border border-slate-700 shadow-lg transition-all duration-300 overflow-hidden shrink-0 ${price > 0 && totalQuantity > 0 ? 'p-5 h-40' : 'p-3'}`}>
+        <div className={`bg-slate-800 rounded-2xl border border-slate-700 shadow-lg transition-all duration-300 overflow-hidden shrink-0 ${price > 0 && totalQuantity > 0 ? 'p-4' : 'p-3'}`}>
              {price > 0 && totalQuantity > 0 ? (
-                <div className="flex flex-col justify-between h-full py-1">
-                 <div className="flex justify-between items-center">
-                    <span className="text-slate-400 text-sm">{t.promoCalc.pricePerItem}</span>
-                    <span className="text-2xl font-bold text-white">
+                <div className="flex flex-col animate-in fade-in">
+                 <div className="flex justify-between items-center mb-3">
+                    <span className="text-slate-400 text-sm font-medium">{t.promoCalc.pricePerItem}</span>
+                    <span className="text-2xl font-bold text-white leading-none">
                         {unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-base text-slate-400">{currency}</span>
                     </span>
                 </div>
-                <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-700/50">
+                
+                <div className="w-full h-px bg-slate-700/50 mb-3"></div>
+
+                <div className="flex justify-between items-center text-sm mb-1">
                     <span className="text-slate-400">{t.promoCalc.realDiscount}</span>
                     <span className="font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded">
                         {realDiscount.toFixed(1)}%
                     </span>
                 </div>
-                <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                <div className="flex justify-between items-center text-xs text-slate-500">
                      <span>{t.promoCalc.totalCost} ({n + x} {t.promoCalc.item})</span>
                      <span>{totalPrice.toLocaleString()} {currency}</span>
                 </div>
@@ -333,13 +339,16 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
          <h2 className="text-xl font-bold text-center text-white mb-1">{t.unitPriceCalc.title}</h2>
          
          <ResultCard hasData={numPrice > 0 && numWeight > 0} emptyText={t.unitPriceCalc.emptyState}>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center mb-3">
                 <span className="text-slate-400 text-sm">{t.unitPriceCalc.costPer} {labelUnit}</span>
-                <span className="text-2xl font-bold text-blue-400">
+                <span className="text-2xl font-bold text-blue-400 leading-none">
                 {pricePerUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-base text-slate-500">{currency}</span>
                 </span>
             </div>
-            <div className="flex justify-between items-center pt-2 border-t border-slate-700/50">
+            
+            <div className="w-full h-px bg-slate-700/50 mb-3"></div>
+
+            <div className="flex justify-between items-center">
                 <span className="text-slate-400 text-sm">{t.unitPriceCalc.costPer100} {unitType === 'kg' || unitType === 'l' ? unitType : (unitType === 'ml' ? t.unitPriceCalc.ml : t.unitPriceCalc.g)}</span>
                 <span className="text-lg font-semibold text-slate-200">
                 {pricePerSmallUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-slate-500">{currency}</span>
@@ -406,13 +415,16 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
          </div>
 
          <ResultCard hasData={original > 0} emptyText={t.reverseCalc.emptyState}>
-            <div className="flex justify-between items-center mb-1">
+            <div className="flex justify-between items-center mb-3">
                 <span className="text-slate-400 text-sm">{t.reverseCalc.regularPrice}</span>
-                <span className="text-2xl font-bold text-slate-200 line-through decoration-red-500/50 decoration-2">
+                <span className="text-2xl font-bold text-slate-200 line-through decoration-red-500/50 decoration-2 leading-none">
                     {original.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
                 </span>
             </div>
-                <div className="flex justify-between items-center pt-2 border-t border-slate-700/50 mt-1">
+            
+            <div className="w-full h-px bg-slate-700/50 mb-3"></div>
+
+            <div className="flex justify-between items-center mt-1">
                 <span className="text-slate-400 text-sm">{t.reverseCalc.saved}</span>
                 <span className="text-green-400 font-bold">
                     {(original - p).toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
