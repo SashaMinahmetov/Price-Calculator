@@ -32,6 +32,7 @@ export interface TelegramWebApp {
   ready: () => void;
   expand: () => void;
   close: () => void;
+  platform: string;
   MainButton: {
     text: string;
     color: string;

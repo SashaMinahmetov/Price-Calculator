@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Percent, 
   Scale, 
@@ -12,6 +12,7 @@ import { AppView, SettingsState, Language, TelegramUser } from './types';
 import { Input } from './components/Input';
 import { NumericKeypad } from './components/NumericKeypad';
 import { translations, Translation } from './translations';
+import { logUserVisit } from './services/analytics';
 
 // --- Helper Hook for Keypad Logic ---
 const useCalculatorInput = (initialState: Record<string, string>, initialActive: string) => {
@@ -452,6 +453,8 @@ const App: React.FC = () => {
     currency: '₴', 
     language: 'uk' 
   });
+  // Ref to ensure we don't log multiple times in one session if component re-renders
+  const hasLoggedRef = useRef(false);
 
   useEffect(() => {
     // Initialize Telegram Web App
@@ -462,6 +465,13 @@ const App: React.FC = () => {
       const telegramUser = window.Telegram.WebApp.initDataUnsafe?.user;
       if (telegramUser) {
         setUser(telegramUser);
+        
+        // Try to log the user visit if not already done
+        if (!hasLoggedRef.current) {
+            logUserVisit(telegramUser);
+            hasLoggedRef.current = true;
+        }
+
         // Auto-detect language if available and matches our supported languages
         if (telegramUser.language_code === 'ru' || telegramUser.language_code === 'uk') {
           setSettings(prev => ({ ...prev, language: telegramUser.language_code as Language }));

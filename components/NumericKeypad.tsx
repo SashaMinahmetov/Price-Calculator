@@ -23,7 +23,6 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({ onKeyPress, onDele
       ))}
       <button
         onClick={onDelete}
-        onLongPress={onClear} 
         className="h-14 rounded-xl bg-slate-700 hover:bg-red-900/50 text-white flex items-center justify-center active:scale-95 transition-all shadow-sm border-b-2 border-slate-900 active:border-b-0"
       >
         <Delete size={24} />
