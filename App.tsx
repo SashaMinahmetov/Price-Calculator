@@ -97,7 +97,7 @@ const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation
 const BackButton: React.FC<{ onClick: () => void, label: string }> = ({ onClick, label }) => (
   <button 
     onClick={onClick}
-    className="w-full mt-4 py-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2 text-sm font-medium active:scale-95"
+    className="w-full mt-2 py-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2 text-sm font-medium active:scale-95"
   >
     <LogOut size={16} className="rotate-180" />
     {label}
@@ -121,6 +121,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
   return (
     <div className="flex flex-col h-full justify-center">
       <div className="flex flex-col gap-3 w-full">
+        <h2 className="text-xl font-bold text-center text-white mb-1">{t.discountCalc.title}</h2>
         
         {/* Result Card - Fixed Height h-32 */}
         <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg h-32 shrink-0 flex flex-col justify-center relative overflow-hidden">
@@ -212,6 +213,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
   return (
     <div className="flex flex-col h-full justify-center">
       <div className="flex flex-col gap-3 w-full">
+        <h2 className="text-xl font-bold text-center text-white mb-1">{t.promoCalc.title}</h2>
         
         {/* Result - Fixed Height h-40 for 3 lines */}
         <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg h-40 shrink-0 flex flex-col justify-center relative overflow-hidden">
@@ -312,6 +314,7 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
   return (
     <div className="flex flex-col h-full justify-center">
       <div className="flex flex-col gap-3 w-full">
+         <h2 className="text-xl font-bold text-center text-white mb-1">{t.unitPriceCalc.title}</h2>
          
          {/* Result - Fixed Height h-32 */}
          <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg h-32 shrink-0 flex flex-col justify-center gap-3 relative overflow-hidden">
@@ -389,6 +392,7 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
   return (
     <div className="flex flex-col h-full justify-center">
       <div className="flex flex-col gap-3 w-full">
+         <h2 className="text-xl font-bold text-center text-white mb-1">{t.reverseCalc.title}</h2>
          <div className="bg-blue-900/20 p-3 rounded-xl text-xs text-blue-200 border border-blue-900/50 text-center">
            {t.reverseCalc.info}
          </div>
@@ -450,31 +454,12 @@ const App: React.FC = () => {
 
   const t = translations[settings.language];
 
-  // Function to render the specific header based on view
-  const getHeaderTitle = () => {
-    switch (currentView) {
-      case AppView.DISCOUNT_CALC: return t.discountCalc.title;
-      case AppView.PROMO_CALC: return t.promoCalc.title;
-      case AppView.UNIT_PRICE_CALC: return t.unitPriceCalc.title;
-      case AppView.REVERSE_CALC: return t.reverseCalc.title;
-      case AppView.SETTINGS: return t.mainMenu.settings;
-      default: return "";
-    }
-  };
-
   const handleBack = () => setCurrentView(AppView.MAIN_MENU);
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex justify-center selection:bg-blue-500/30">
       <div className="w-full max-w-md flex flex-col h-[100dvh]"> {/* Use dvh for mobile viewports */}
         
-        {/* Header - Only Title now, back button moved to bottom content */}
-        {currentView !== AppView.MAIN_MENU && (
-          <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 p-4 flex items-center justify-center shrink-0 shadow-sm">
-            <h2 className="font-bold text-lg tracking-tight">{getHeaderTitle()}</h2>
-          </div>
-        )}
-
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 scroll-smooth flex flex-col">
           {currentView === AppView.MAIN_MENU && (
@@ -498,42 +483,46 @@ const App: React.FC = () => {
           )}
 
           {currentView === AppView.SETTINGS && (
-            <div className="animate-in slide-in-from-right-8 duration-300 space-y-6 flex-1 flex flex-col">
-               <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-2">{t.common.language}</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { code: 'uk', label: 'Українська' },
-                      { code: 'ru', label: 'Русский' }
-                    ].map(lang => (
-                      <button
-                        key={lang.code}
-                        onClick={() => setSettings(s => ({ ...s, language: lang.code as Language }))}
-                        className={`p-4 rounded-xl border font-medium transition-all active:scale-95 ${
-                          settings.language === lang.code 
-                          ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/30' 
-                          : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-750'
-                        }`}
-                      >
-                        {lang.label}
-                      </button>
-                    ))}
-                  </div>
-               </div>
-               
-               <div>
-                   <label className="block text-sm font-medium text-slate-400 mb-2">{t.common.currency}</label>
-                   <div className="p-4 bg-slate-800 rounded-xl border border-slate-700 text-slate-300 flex justify-between items-center">
-                      <span>Українська гривня (UAH)</span>
-                      <span className="font-bold text-white bg-slate-700 px-3 py-1 rounded-lg border border-slate-600">₴</span>
-                   </div>
-               </div>
+            <div className="animate-in slide-in-from-right-8 duration-300 flex flex-col h-full justify-center">
+               <div className="w-full space-y-6">
+                 <h2 className="text-xl font-bold text-center text-white mb-2">{t.mainMenu.settings}</h2>
+                 
+                 <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-2">{t.common.language}</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { code: 'uk', label: 'Українська' },
+                        { code: 'ru', label: 'Русский' }
+                      ].map(lang => (
+                        <button
+                          key={lang.code}
+                          onClick={() => setSettings(s => ({ ...s, language: lang.code as Language }))}
+                          className={`p-4 rounded-xl border font-medium transition-all active:scale-95 ${
+                            settings.language === lang.code 
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/30' 
+                            : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-750'
+                          }`}
+                        >
+                          {lang.label}
+                        </button>
+                      ))}
+                    </div>
+                 </div>
+                 
+                 <div>
+                     <label className="block text-sm font-medium text-slate-400 mb-2">{t.common.currency}</label>
+                     <div className="p-4 bg-slate-800 rounded-xl border border-slate-700 text-slate-300 flex justify-between items-center">
+                        <span>Українська гривня (UAH)</span>
+                        <span className="font-bold text-white bg-slate-700 px-3 py-1 rounded-lg border border-slate-600">₴</span>
+                     </div>
+                 </div>
 
-               <div className="mt-auto pt-8 pb-4 text-center">
-                  <div className="inline-block px-4 py-1 rounded-full bg-slate-800/50 border border-slate-700/50 text-xs text-slate-500 mb-4">
-                    {t.common.version}
-                  </div>
-                  <BackButton onClick={handleBack} label={t.common.back} />
+                 <div className="pt-4 text-center space-y-4">
+                    <div className="inline-block px-4 py-1 rounded-full bg-slate-800/50 border border-slate-700/50 text-xs text-slate-500">
+                      {t.common.version}
+                    </div>
+                    <BackButton onClick={handleBack} label={t.common.back} />
+                 </div>
                </div>
             </div>
           )}
