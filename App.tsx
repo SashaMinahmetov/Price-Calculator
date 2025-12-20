@@ -15,7 +15,7 @@ import { translations, Translation } from './translations';
 import { logUserVisit } from './services/analytics';
 
 // --- Helper Hook for Keypad Logic ---
-const useCalculatorInput = (initialState: Record<string, string>, initialActive: string) => {
+const useCalculatorInput = (initialState: Record<string, string>, initialActive: string, fields: string[]) => {
   const [values, setValues] = useState(initialState);
   const [activeField, setActiveField] = useState(initialActive);
 
@@ -48,7 +48,13 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
     }));
   }
 
-  return { values, activeField, setActiveField, handleKeyPress, handleDelete, handleClear, setValues };
+  const handleNext = () => {
+    const currentIndex = fields.indexOf(activeField);
+    const nextIndex = (currentIndex + 1) % fields.length;
+    setActiveField(fields[nextIndex]);
+  };
+
+  return { values, activeField, setActiveField, handleKeyPress, handleDelete, handleClear, setValues, handleNext };
 };
 
 // --- View Components ---
@@ -105,10 +111,27 @@ const BackButton: React.FC<{ onClick: () => void, label: string }> = ({ onClick,
   </button>
 );
 
+const ResultCard: React.FC<{ hasData: boolean, emptyText: string, children: React.ReactNode }> = ({ hasData, emptyText, children }) => {
+    return (
+        <div className={`bg-slate-800 rounded-2xl border border-slate-700 shadow-lg transition-all duration-300 overflow-hidden shrink-0 ${hasData ? 'p-5 h-32' : 'p-3'}`}>
+            {hasData ? (
+                <div className="h-full flex flex-col justify-center animate-in fade-in">
+                    {children}
+                </div>
+            ) : (
+                 <div className="flex items-center justify-center text-slate-500 text-xs text-center px-4 py-1">
+                    {emptyText}
+                </div>
+            )}
+        </div>
+    )
+}
+
 const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const { values, activeField, setActiveField, handleKeyPress, handleDelete, setValues } = useCalculatorInput(
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, setValues, handleNext } = useCalculatorInput(
     { price: '', discount: '' }, 
-    'price'
+    'price',
+    ['price', 'discount']
   );
 
   const numPrice = parseFloat(values.price) || 0;
@@ -124,29 +147,20 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
       <div className="flex flex-col gap-3 w-full">
         <h2 className="text-xl font-bold text-center text-white mb-1">{t.discountCalc.title}</h2>
         
-        {/* Result Card - Fixed Height h-32 */}
-        <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg h-32 shrink-0 flex flex-col justify-center relative overflow-hidden">
-            {numPrice > 0 ? (
-                <>
-                    <div className="flex justify-between items-end pb-2 border-b border-slate-700/50 mb-2">
-                    <span className="text-slate-400 text-sm">{t.discountCalc.finalPrice}</span>
-                    <span className="text-3xl font-bold text-green-400 tracking-tight">
-                        {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-xl">{currency}</span>
-                    </span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">{t.common.save}</span>
-                    <span className="font-semibold text-blue-400">
-                        {saved.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
-                    </span>
-                    </div>
-                </>
-            ) : (
-                <div className="flex items-center justify-center h-full text-slate-500 text-sm text-center px-4">
-                    {t.discountCalc.emptyState}
-                </div>
-            )}
-        </div>
+        <ResultCard hasData={numPrice > 0} emptyText={t.discountCalc.emptyState}>
+            <div className="flex justify-between items-end pb-2 border-b border-slate-700/50 mb-2">
+                <span className="text-slate-400 text-sm">{t.discountCalc.finalPrice}</span>
+                <span className="text-3xl font-bold text-green-400 tracking-tight">
+                    {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-xl">{currency}</span>
+                </span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-400">{t.common.save}</span>
+                <span className="font-semibold text-blue-400">
+                    {saved.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
+                </span>
+            </div>
+        </ResultCard>
 
         {/* Inputs */}
         <div className="grid grid-cols-2 gap-3">
@@ -188,7 +202,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
             ))}
         </div>
         
-        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
         <BackButton onClick={onBack} label={t.common.back} />
       </div>
     </div>
@@ -196,9 +210,10 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
 };
 
 const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const { values, activeField, setActiveField, handleKeyPress, handleDelete } = useCalculatorInput(
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', n: '', x: '' }, 
-    'price'
+    'price',
+    ['price', 'n', 'x']
   );
 
   const price = parseFloat(values.price) || 0;
@@ -216,8 +231,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
       <div className="flex flex-col gap-3 w-full">
         <h2 className="text-xl font-bold text-center text-white mb-1">{t.promoCalc.title}</h2>
         
-        {/* Result - Fixed Height h-40 for 3 lines */}
-        <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg h-40 shrink-0 flex flex-col justify-center relative overflow-hidden">
+        <div className={`bg-slate-800 rounded-2xl border border-slate-700 shadow-lg transition-all duration-300 overflow-hidden shrink-0 ${price > 0 && totalQuantity > 0 ? 'p-5 h-40' : 'p-3'}`}>
              {price > 0 && totalQuantity > 0 ? (
                 <div className="flex flex-col justify-between h-full py-1">
                  <div className="flex justify-between items-center">
@@ -238,7 +252,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
                 </div>
                 </div>
              ) : (
-                <div className="flex items-center justify-center h-full text-slate-500 text-sm text-center px-4">
+                <div className="flex items-center justify-center text-slate-500 text-xs text-center px-4 py-1">
                     {t.promoCalc.emptyState}
                 </div>
              )}
@@ -267,7 +281,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
           />
         </div>
 
-        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
         <BackButton onClick={onBack} label={t.common.back} />
       </div>
     </div>
@@ -275,9 +289,10 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
 };
 
 const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const { values, activeField, setActiveField, handleKeyPress, handleDelete } = useCalculatorInput(
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', weight: '' }, 
-    'price'
+    'price',
+    ['price', 'weight']
   );
   const [unitType, setUnitType] = useState<'g' | 'kg' | 'ml' | 'l'>('g');
 
@@ -317,29 +332,20 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
       <div className="flex flex-col gap-3 w-full">
          <h2 className="text-xl font-bold text-center text-white mb-1">{t.unitPriceCalc.title}</h2>
          
-         {/* Result - Fixed Height h-32 */}
-         <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg h-32 shrink-0 flex flex-col justify-center gap-3 relative overflow-hidden">
-            {numPrice > 0 && numWeight > 0 ? (
-                <>
-                <div className="flex justify-between items-center">
-                    <span className="text-slate-400 text-sm">{t.unitPriceCalc.costPer} {labelUnit}</span>
-                    <span className="text-2xl font-bold text-blue-400">
-                    {pricePerUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-base text-slate-500">{currency}</span>
-                    </span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-slate-700/50">
-                    <span className="text-slate-400 text-sm">{t.unitPriceCalc.costPer100} {unitType === 'kg' || unitType === 'l' ? unitType : (unitType === 'ml' ? t.unitPriceCalc.ml : t.unitPriceCalc.g)}</span>
-                    <span className="text-lg font-semibold text-slate-200">
-                    {pricePerSmallUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-slate-500">{currency}</span>
-                    </span>
-                </div>
-                </>
-            ) : (
-                <div className="flex items-center justify-center h-full text-slate-500 text-sm text-center px-4">
-                    {t.unitPriceCalc.emptyState}
-                </div>
-            )}
-         </div>
+         <ResultCard hasData={numPrice > 0 && numWeight > 0} emptyText={t.unitPriceCalc.emptyState}>
+            <div className="flex justify-between items-center">
+                <span className="text-slate-400 text-sm">{t.unitPriceCalc.costPer} {labelUnit}</span>
+                <span className="text-2xl font-bold text-blue-400">
+                {pricePerUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-base text-slate-500">{currency}</span>
+                </span>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t border-slate-700/50">
+                <span className="text-slate-400 text-sm">{t.unitPriceCalc.costPer100} {unitType === 'kg' || unitType === 'l' ? unitType : (unitType === 'ml' ? t.unitPriceCalc.ml : t.unitPriceCalc.g)}</span>
+                <span className="text-lg font-semibold text-slate-200">
+                {pricePerSmallUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-slate-500">{currency}</span>
+                </span>
+            </div>
+         </ResultCard>
 
          <Input 
             label={t.unitPriceCalc.priceLabel}
@@ -372,7 +378,7 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
           </div>
         </div>
 
-        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
         <BackButton onClick={onBack} label={t.common.back} />
       </div>
     </div>
@@ -380,9 +386,10 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
 };
 
 const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const { values, activeField, setActiveField, handleKeyPress, handleDelete } = useCalculatorInput(
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', percent: '' }, 
-    'price'
+    'price',
+    ['price', 'percent']
   );
 
   const p = parseFloat(values.price) || 0;
@@ -394,33 +401,24 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
     <div className="flex flex-col h-full justify-center">
       <div className="flex flex-col gap-3 w-full">
          <h2 className="text-xl font-bold text-center text-white mb-1">{t.reverseCalc.title}</h2>
-         <div className="bg-blue-900/20 p-3 rounded-xl text-xs text-blue-200 border border-blue-900/50 text-center">
+         <div className="bg-blue-900/20 p-2 rounded-lg text-xs text-blue-200 border border-blue-900/50 text-center">
            {t.reverseCalc.info}
          </div>
 
-         {/* Result - Fixed Height h-28 */}
-         <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg h-28 shrink-0 flex flex-col justify-center relative overflow-hidden">
-            {original > 0 ? (
-                <>
-                <div className="flex justify-between items-center mb-1">
-                    <span className="text-slate-400 text-sm">{t.reverseCalc.regularPrice}</span>
-                    <span className="text-2xl font-bold text-slate-200 line-through decoration-red-500/50 decoration-2">
-                        {original.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
-                    </span>
-                </div>
-                 <div className="flex justify-between items-center pt-2 border-t border-slate-700/50 mt-1">
-                    <span className="text-slate-400 text-sm">{t.reverseCalc.saved}</span>
-                    <span className="text-green-400 font-bold">
-                        {(original - p).toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
-                    </span>
-                </div>
-                </>
-            ) : (
-                 <div className="flex items-center justify-center h-full text-slate-500 text-sm text-center px-4">
-                    {t.reverseCalc.emptyState}
-                </div>
-            )}
-         </div>
+         <ResultCard hasData={original > 0} emptyText={t.reverseCalc.emptyState}>
+            <div className="flex justify-between items-center mb-1">
+                <span className="text-slate-400 text-sm">{t.reverseCalc.regularPrice}</span>
+                <span className="text-2xl font-bold text-slate-200 line-through decoration-red-500/50 decoration-2">
+                    {original.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
+                </span>
+            </div>
+                <div className="flex justify-between items-center pt-2 border-t border-slate-700/50 mt-1">
+                <span className="text-slate-400 text-sm">{t.reverseCalc.saved}</span>
+                <span className="text-green-400 font-bold">
+                    {(original - p).toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
+                </span>
+            </div>
+         </ResultCard>
 
          <Input 
             label={t.reverseCalc.discountedPrice}
@@ -437,7 +435,7 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
             suffix="%"
           />
           
-          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
           <BackButton onClick={onBack} label={t.common.back} />
       </div>
     </div>
