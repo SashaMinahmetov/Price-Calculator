@@ -128,7 +128,7 @@ const ResultCard: React.FC<{ hasData: boolean, emptyText: string, children: Reac
 }
 
 const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const { values, activeField, setActiveField, handleKeyPress, handleDelete, setValues, handleNext } = useCalculatorInput(
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', discount: '' }, 
     'price',
     ['price', 'discount']
@@ -140,24 +140,22 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
   const finalPrice = numPrice * (1 - numDiscount / 100);
   const saved = numPrice - finalPrice;
 
-  const quickDiscounts = ['5', '10', '15', '20', '25', '30', '40', '50'];
-
   return (
     <div className="flex flex-col h-full justify-center">
       <div className="flex flex-col gap-3 w-full">
         <h2 className="text-xl font-bold text-center text-white mb-1">{t.discountCalc.title}</h2>
         
         <ResultCard hasData={numPrice > 0} emptyText={t.discountCalc.emptyState}>
-            <div className="flex justify-between items-center mb-3">
-                <span className="text-slate-400 text-sm font-medium">{t.discountCalc.finalPrice}</span>
-                <span className="text-3xl font-bold text-green-400 tracking-tight leading-none">
-                    {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-xl">{currency}</span>
+            <div className="flex flex-col items-center py-2">
+                <span className="text-slate-400 text-sm font-medium mb-1">{t.discountCalc.finalPrice}</span>
+                <span className="text-4xl font-bold text-green-400 tracking-tight leading-none">
+                    {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{currency}</span>
                 </span>
             </div>
             
-            <div className="w-full h-px bg-slate-700/50 mb-3"></div>
+            <div className="w-full h-px bg-slate-700/50 mb-3 mt-1"></div>
 
-            <div className="flex justify-between items-center text-sm">
+            <div className="flex justify-between items-center text-sm px-1">
                 <span className="text-slate-400">{t.common.save}</span>
                 <span className="font-semibold text-blue-400">
                     {saved.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
@@ -188,22 +186,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
             />
         </div>
 
-        {/* Quick Buttons */}
-        <div className="grid grid-cols-4 gap-2">
-            {quickDiscounts.map(d => (
-                <button
-                    key={d}
-                    onClick={() => setValues(prev => ({ ...prev, discount: d }))}
-                    className={`py-2 rounded-lg text-sm font-semibold transition-colors ${
-                        values.discount === d 
-                        ? 'bg-blue-600 text-white shadow-md' 
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    }`}
-                >
-                    {d}%
-                </button>
-            ))}
-        </div>
+        {/* Removed Quick Buttons as requested */}
         
         <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
         <BackButton onClick={onBack} label={t.common.back} />
