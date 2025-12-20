@@ -40,10 +40,10 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
       {onNext && (
         <button 
           onClick={onNext}
-          className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+          className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
         >
           {nextLabel}
-          <ArrowDown size={20} />
+          <ArrowDown size={16} />
         </button>
       )}
     </div>

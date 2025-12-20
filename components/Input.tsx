@@ -18,25 +18,25 @@ export const Input: React.FC<InputProps> = ({
   ...props 
 }) => {
   return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className={`text-sm font-medium ml-1 transition-colors ${isActive ? 'text-blue-400' : 'text-slate-400'}`}>
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className={`text-xs font-medium ml-1 transition-colors ${isActive ? 'text-blue-400' : 'text-slate-400'}`}>
         {label}
       </label>
       <div 
         onClick={onInputClick}
-        className={`relative w-full bg-slate-800 border rounded-xl px-4 py-3 transition-all cursor-pointer flex items-center
+        className={`relative w-full bg-slate-800 border rounded-xl px-3 py-2.5 transition-all cursor-pointer flex items-center
           ${isActive 
             ? 'border-blue-500 ring-1 ring-blue-500 bg-slate-800' 
             : 'border-slate-700 hover:border-slate-600'
           }`}
       >
         <div className="flex-1 flex items-center justify-between overflow-hidden">
-          {/* Added min-h-[28px] to prevent collapse when empty. 28px corresponds to text-lg line-height roughly */}
-          <span className={`text-lg leading-7 min-h-[28px] ${value ? 'text-white' : 'text-slate-500'}`}>
+          {/* Reduced min-h and font-size to make it more compact */}
+          <span className={`text-base font-medium leading-6 min-h-[24px] ${value ? 'text-white' : 'text-slate-500'}`}>
             {value || props.placeholder || ''}
           </span>
           {suffix && (
-            <span className="text-slate-500 ml-2 pointer-events-none whitespace-nowrap">
+            <span className="text-slate-500 ml-2 pointer-events-none whitespace-nowrap text-sm">
               {suffix}
             </span>
           )}
