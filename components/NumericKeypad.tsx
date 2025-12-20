@@ -19,16 +19,7 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
 
   return (
     <div className="flex flex-col gap-2 pt-2">
-      {onNext && (
-        <button 
-          onClick={onNext}
-          className="w-full py-3 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 font-semibold text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2 border border-blue-600/20"
-        >
-          {nextLabel}
-          <ArrowDown size={16} />
-        </button>
-      )}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {keys.map((key) => (
           <button
             key={key}
@@ -45,6 +36,16 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
           <Delete size={24} />
         </button>
       </div>
+
+      {onNext && (
+        <button 
+          onClick={onNext}
+          className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+        >
+          {nextLabel}
+          <ArrowDown size={20} />
+        </button>
+      )}
     </div>
   );
 };
