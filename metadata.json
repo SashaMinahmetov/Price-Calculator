@@ -1,0 +1,5 @@
+{
+  "name": "Smart Shopping Calculator",
+  "description": "A Telegram Mini App for calculating discounts, unit prices, and promo deals.",
+  "requestFramePermissions": []
+}
