@@ -1,13 +1,19 @@
 import { GoogleGenAI } from "@google/genai";
 import { Language } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
 
 export const analyzeShoppingDeal = async (userQuery: string, currency: string, language: Language): Promise<string> => {
-  if (!process.env.API_KEY) {
-    return language === 'uk' 
-      ? "Помилка: API ключ не знайдено." 
-      : "Ошибка: API ключ не найден.";
+  // Ensure we only check for the key when the function is called, not when the file is loaded.
+  // This prevents the "White/Blue Screen of Death" if the environment isn't fully ready at load time.
+  if (!ai) {
+    if (process.env.API_KEY) {
+      ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    } else {
+       return language === 'uk' 
+        ? "Помилка: API ключ не знайдено. Перевірте налаштування Railway." 
+        : "Ошибка: API ключ не найден. Проверьте настройки Railway.";
+    }
   }
 
   const langName = language === 'uk' ? 'Ukrainian' : 'Russian';
