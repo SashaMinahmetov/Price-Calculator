@@ -11,7 +11,7 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({ onKeyPress, onDele
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0'];
 
   return (
-    <div className="grid grid-cols-3 gap-3 mt-auto pt-4 pb-2">
+    <div className="grid grid-cols-3 gap-3 pt-2">
       {keys.map((key) => (
         <button
           key={key}
@@ -23,7 +23,7 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({ onKeyPress, onDele
       ))}
       <button
         onClick={onDelete}
-        onLongPress={onClear} // Note: simplified for web, long press requires custom handler usually, keeping simple click for backspace
+        onLongPress={onClear} 
         className="h-14 rounded-xl bg-slate-700 hover:bg-red-900/50 text-white flex items-center justify-center active:scale-95 transition-all shadow-sm border-b-2 border-slate-900 active:border-b-0"
       >
         <Delete size={24} />

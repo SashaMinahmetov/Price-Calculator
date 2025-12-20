@@ -17,8 +17,8 @@ export const translations = {
     common: {
       currency: "Валюта",
       language: "Язык",
-      back: "Назад",
-      version: "Версия 1.2.0",
+      back: "В главное меню",
+      version: "Версия 1.2.1",
       save: "Вы экономите",
       total: "Итоговая цена",
     },
@@ -27,16 +27,18 @@ export const translations = {
       priceLabel: "Цена на полке",
       discountLabel: "Скидка (%)",
       finalPrice: "Цена со скидкой",
+      emptyState: "Введите цену и процент скидки, чтобы увидеть результат."
     },
     promoCalc: {
       title: "Акция N+X",
       priceLabel: "Цена за 1 шт",
-      buyLabel: "Покупаем (N)",
-      freeLabel: "Бесплатно (X)",
+      buyLabel: "Купуємо (N)",
+      freeLabel: "Безкоштовно (X)",
       pricePerItem: "Цена за 1 шт по акции",
       realDiscount: "Фактическая скидка",
       totalCost: "Общая сумма",
-      item: "шт"
+      item: "шт",
+      emptyState: "Введите цену и условия акции (N+X), чтобы узнать реальную стоимость."
     },
     unitPriceCalc: {
       title: "Цена за КГ/Литр",
@@ -47,7 +49,8 @@ export const translations = {
       g: "г",
       kg: "кг",
       ml: "мл",
-      l: "л"
+      l: "л",
+      emptyState: "Введите цену и вес товара, чтобы сравнить стоимость."
     },
     reverseCalc: {
       title: "Цена без скидки",
@@ -55,7 +58,8 @@ export const translations = {
       discountedPrice: "Цена со скидкой",
       percent: "Процент скидки",
       regularPrice: "Регулярная цена",
-      saved: "Вы сэкономили"
+      saved: "Вы сэкономили",
+      emptyState: "Введите текущую цену и процент скидки."
     }
   },
   uk: {
@@ -76,8 +80,8 @@ export const translations = {
     common: {
       currency: "Валюта",
       language: "Мова",
-      back: "Назад",
-      version: "Версія 1.2.0",
+      back: "В головне меню",
+      version: "Версія 1.2.1",
       save: "Ви заощаджуєте",
       total: "Підсумкова ціна",
     },
@@ -86,6 +90,7 @@ export const translations = {
       priceLabel: "Ціна на полиці",
       discountLabel: "Знижка (%)",
       finalPrice: "Ціна зі знижкою",
+      emptyState: "Введіть ціну та відсоток знижки, щоб побачити результат."
     },
     promoCalc: {
       title: "Акція N+X",
@@ -95,7 +100,8 @@ export const translations = {
       pricePerItem: "Ціна за 1 шт по акції",
       realDiscount: "Фактична знижка",
       totalCost: "Загальна сума",
-      item: "шт"
+      item: "шт",
+      emptyState: "Введіть ціну та умови акції (N+X), щоб дізнатись реальну вартість."
     },
     unitPriceCalc: {
       title: "Ціна за КГ/Літр",
@@ -106,7 +112,8 @@ export const translations = {
       g: "г",
       kg: "кг",
       ml: "мл",
-      l: "л"
+      l: "л",
+      emptyState: "Введіть ціну та вагу товару, щоб порівняти вартість."
     },
     reverseCalc: {
       title: "Ціна без знижки",
@@ -114,7 +121,8 @@ export const translations = {
       discountedPrice: "Ціна зі знижкою",
       percent: "Відсоток знижки",
       regularPrice: "Регулярна ціна",
-      saved: "Ви заощадили"
+      saved: "Ви заощадили",
+      emptyState: "Введіть поточну ціну та відсоток знижки."
     }
   }
 };

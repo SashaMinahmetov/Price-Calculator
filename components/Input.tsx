@@ -24,18 +24,19 @@ export const Input: React.FC<InputProps> = ({
       </label>
       <div 
         onClick={onInputClick}
-        className={`relative w-full bg-slate-800 border rounded-xl px-4 py-3 transition-all cursor-pointer
+        className={`relative w-full bg-slate-800 border rounded-xl px-4 py-3 transition-all cursor-pointer flex items-center
           ${isActive 
             ? 'border-blue-500 ring-1 ring-blue-500 bg-slate-800' 
             : 'border-slate-700 hover:border-slate-600'
           }`}
       >
-        <div className="flex items-center justify-between">
-          <span className={`text-lg ${value ? 'text-white' : 'text-slate-500'}`}>
+        <div className="flex-1 flex items-center justify-between overflow-hidden">
+          {/* Added min-h-[28px] to prevent collapse when empty. 28px corresponds to text-lg line-height roughly */}
+          <span className={`text-lg leading-7 min-h-[28px] ${value ? 'text-white' : 'text-slate-500'}`}>
             {value || props.placeholder || ''}
           </span>
           {suffix && (
-            <span className="text-slate-500 ml-2 pointer-events-none">
+            <span className="text-slate-500 ml-2 pointer-events-none whitespace-nowrap">
               {suffix}
             </span>
           )}
