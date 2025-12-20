@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Percent, 
   Scale, 
@@ -8,7 +8,7 @@ import {
   ArrowRight,
   LogOut
 } from 'lucide-react';
-import { AppView, SettingsState, Language } from './types';
+import { AppView, SettingsState, Language, TelegramUser } from './types';
 import { Input } from './components/Input';
 import { NumericKeypad } from './components/NumericKeypad';
 import { translations, Translation } from './translations';
@@ -52,7 +52,7 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
 
 // --- View Components ---
 
-const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation }> = ({ onViewSelect, t }) => {
+const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation, user?: TelegramUser }> = ({ onViewSelect, t, user }) => {
   const menuItems = [
     { id: AppView.DISCOUNT_CALC, title: t.mainMenu.discount, icon: <Package size={20} />, sub: t.mainMenu.discountSub, color: "text-blue-400" },
     { id: AppView.PROMO_CALC, title: t.mainMenu.promo, icon: <Percent size={20} />, sub: t.mainMenu.promoSub, color: "text-purple-400" },
@@ -65,7 +65,7 @@ const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation
     <div className="flex flex-col gap-3 p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full justify-center">
       <div className="bg-slate-800/50 p-5 rounded-2xl mb-2 border border-slate-700/50 backdrop-blur-sm">
         <h1 className="text-2xl font-bold flex items-center gap-2 mb-1 text-white">
-           {t.mainMenu.welcome}
+           {user ? `👋 ${user.first_name}` : t.mainMenu.welcome}
         </h1>
         <p className="text-slate-400 text-sm">{t.mainMenu.chooseOption}</p>
       </div>
@@ -447,10 +447,28 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.MAIN_MENU);
+  const [user, setUser] = useState<TelegramUser | undefined>(undefined);
   const [settings, setSettings] = useState<SettingsState>({ 
     currency: '₴', 
     language: 'uk' 
   });
+
+  useEffect(() => {
+    // Initialize Telegram Web App
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      
+      const telegramUser = window.Telegram.WebApp.initDataUnsafe?.user;
+      if (telegramUser) {
+        setUser(telegramUser);
+        // Auto-detect language if available and matches our supported languages
+        if (telegramUser.language_code === 'ru' || telegramUser.language_code === 'uk') {
+          setSettings(prev => ({ ...prev, language: telegramUser.language_code as Language }));
+        }
+      }
+    }
+  }, []);
 
   const t = translations[settings.language];
 
@@ -463,7 +481,7 @@ const App: React.FC = () => {
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 scroll-smooth flex flex-col">
           {currentView === AppView.MAIN_MENU && (
-            <MainMenu onViewSelect={setCurrentView} t={t} />
+            <MainMenu onViewSelect={setCurrentView} t={t} user={user} />
           )}
 
           {currentView === AppView.DISCOUNT_CALC && (
