@@ -11,6 +11,8 @@ export const translations = {
       unitPriceSub: "Сравнение упаковок",
       reverse: "Регулярная цена",
       reverseSub: "Узнать цену без скидки",
+      currency: "Конвертер валют",
+      currencySub: "USD <-> UAH",
       settings: "Настройки",
       settingsSub: "Язык"
     },
@@ -18,7 +20,7 @@ export const translations = {
       currency: "Валюта",
       language: "Язык",
       back: "В главное меню",
-      version: "Версия 1.2.2",
+      version: "Версия 1.3.0",
       save: "Вы экономите",
       total: "Итоговая цена",
       next: "Далее",
@@ -61,6 +63,16 @@ export const translations = {
       regularPrice: "Регулярная цена",
       saved: "Вы сэкономили",
       emptyState: "Введите цену и % скидки"
+    },
+    currencyCalc: {
+      title: "Конвертер валют",
+      amountLabel: "Сумма",
+      rateLabel: "Курс (НБУ)",
+      toUah: "В гривну",
+      toUsd: "В доллар",
+      result: "Результат",
+      emptyState: "Введите сумму",
+      date: "от"
     }
   },
   uk: {
@@ -75,6 +87,8 @@ export const translations = {
       unitPriceSub: "Порівняння упаковок",
       reverse: "Регулярна ціна",
       reverseSub: "Дізнатись ціну без знижки",
+      currency: "Конвертер валют",
+      currencySub: "USD <-> UAH",
       settings: "Налаштування",
       settingsSub: "Мова"
     },
@@ -82,7 +96,7 @@ export const translations = {
       currency: "Валюта",
       language: "Мова",
       back: "В головне меню",
-      version: "Версія 1.2.2",
+      version: "Версія 1.3.0",
       save: "Ви заощаджуєте",
       total: "Підсумкова ціна",
       next: "Далі",
@@ -125,6 +139,16 @@ export const translations = {
       regularPrice: "Регулярна ціна",
       saved: "Ви заощадили",
       emptyState: "Введіть ціну та % знижки"
+    },
+    currencyCalc: {
+      title: "Конвертер валют",
+      amountLabel: "Сума",
+      rateLabel: "Курс (НБУ)",
+      toUah: "В гривню",
+      toUsd: "В долар",
+      result: "Результат",
+      emptyState: "Введіть суму",
+      date: "від"
     }
   }
 };

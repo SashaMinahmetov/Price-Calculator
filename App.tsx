@@ -6,7 +6,10 @@ import {
   Settings as SettingsIcon, 
   Package,
   ArrowRight,
-  LogOut
+  LogOut,
+  DollarSign,
+  ArrowLeftRight,
+  RefreshCcw
 } from 'lucide-react';
 import { AppView, SettingsState, Language, TelegramUser } from './types';
 import { Input } from './components/Input';
@@ -65,6 +68,7 @@ const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation
     { id: AppView.PROMO_CALC, title: t.mainMenu.promo, icon: <Percent size={20} />, sub: t.mainMenu.promoSub, color: "text-purple-400" },
     { id: AppView.UNIT_PRICE_CALC, title: t.mainMenu.unitPrice, icon: <Scale size={20} />, sub: t.mainMenu.unitPriceSub, color: "text-green-400" },
     { id: AppView.REVERSE_CALC, title: t.mainMenu.reverse, icon: <Briefcase size={20} />, sub: t.mainMenu.reverseSub, color: "text-orange-400" },
+    { id: AppView.CURRENCY_CONVERTER, title: t.mainMenu.currency, icon: <DollarSign size={20} />, sub: t.mainMenu.currencySub, color: "text-emerald-400" },
     { id: AppView.SETTINGS, title: t.mainMenu.settings, icon: <SettingsIcon size={20} />, sub: t.mainMenu.settingsSub, color: "text-slate-400" },
   ];
 
@@ -146,14 +150,25 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
         <h2 className="text-xl font-bold text-center text-white mb-1">{t.discountCalc.title}</h2>
         
         <ResultCard hasData={numPrice > 0} emptyText={t.discountCalc.emptyState}>
-            <div className="flex flex-col items-center py-2">
-                <span className="text-slate-400 text-sm font-medium mb-1">{t.discountCalc.finalPrice}</span>
-                <span className="text-4xl font-bold text-green-400 tracking-tight leading-none">
+            <div className="flex flex-col items-center pt-2 pb-1">
+                {/* Regular Price (Strikethrough) */}
+                <div className="flex items-center gap-2 mb-1 opacity-80">
+                     <span className="text-slate-500 text-xs">{t.reverseCalc.regularPrice}</span>
+                     <span className="text-lg font-medium text-slate-400 line-through decoration-red-500/60 decoration-2">
+                        {numPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
+                     </span>
+                </div>
+
+                {/* Final Price */}
+                <span className="text-4xl font-bold text-green-400 tracking-tight leading-none mb-1">
                     {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{currency}</span>
+                </span>
+                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider opacity-60">
+                    {t.discountCalc.finalPrice}
                 </span>
             </div>
             
-            <div className="w-full h-px bg-slate-700/50 mb-3 mt-1"></div>
+            <div className="w-full h-px bg-slate-700/50 mb-3 mt-2"></div>
 
             <div className="flex justify-between items-center text-sm px-1">
                 <span className="text-slate-400">{t.common.save}</span>
@@ -185,14 +200,157 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
                 className="col-span-2"
             />
         </div>
-
-        {/* Removed Quick Buttons as requested */}
         
         <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
         <BackButton onClick={onBack} label={t.common.back} />
       </div>
     </div>
   );
+};
+
+const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBack }) => {
+    // State to toggle direction: 'USD_TO_UAH' (default) or 'UAH_TO_USD'
+    const [direction, setDirection] = useState<'USD_TO_UAH' | 'UAH_TO_USD'>('USD_TO_UAH');
+    const [loading, setLoading] = useState(false);
+    const [rateDate, setRateDate] = useState<string>('');
+    
+    // We store rate as a string in inputs for editing, but logic uses float
+    const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext, setValues } = useCalculatorInput(
+      { amount: '', rate: '41.50' }, // Default fallback rate
+      'amount',
+      ['amount', 'rate']
+    );
+
+    const performFetch = async () => {
+        setLoading(true);
+        try {
+            // Get today's date in YYYYMMDD format to force NBU to return today's rate
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateParam = `${year}${month}${day}`;
+
+            // Try to fetch specifically for today to avoid getting "next banking day" rates if NBU served them early
+            let response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&date=${dateParam}&json`);
+            
+            let data;
+            if (response.ok) {
+                data = await response.json();
+            }
+
+            // Fallback to default endpoint if specific date returns empty (e.g. edge cases)
+            if (!data || data.length === 0) {
+                 response = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json');
+                 if (response.ok) {
+                    data = await response.json();
+                 }
+            }
+
+            if (data && data[0]) {
+                if (data[0].rate) setValues(prev => ({ ...prev, rate: data[0].rate.toFixed(2) }));
+                if (data[0].exchangedate) setRateDate(data[0].exchangedate);
+            }
+        } catch (error) {
+            console.error("Failed to fetch rate", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+  
+    useEffect(() => {
+        performFetch();
+    }, []);
+  
+    const amount = parseFloat(values.amount) || 0;
+    const rate = parseFloat(values.rate) || 0;
+    
+    let result = 0;
+    let fromSymbol = "$";
+    let toSymbol = "₴";
+    let title = t.currencyCalc.toUah;
+
+    if (direction === 'USD_TO_UAH') {
+        result = amount * rate;
+        fromSymbol = "$";
+        toSymbol = "₴";
+        title = "USD ➞ UAH";
+    } else {
+        result = rate > 0 ? amount / rate : 0;
+        fromSymbol = "₴";
+        toSymbol = "$";
+        title = "UAH ➞ USD";
+    }
+  
+    const toggleDirection = () => {
+        setDirection(prev => prev === 'USD_TO_UAH' ? 'UAH_TO_USD' : 'USD_TO_UAH');
+    };
+
+    const handleRefresh = () => {
+        performFetch();
+    }
+  
+    return (
+      <div className="flex flex-col h-full justify-center">
+        <div className="flex flex-col gap-3 w-full">
+            <div className="flex justify-between items-center px-2">
+                 <h2 className="text-xl font-bold text-white">{t.currencyCalc.title}</h2>
+                 <button onClick={handleRefresh} className={`p-2 rounded-full hover:bg-slate-800 ${loading ? 'animate-spin text-blue-400' : 'text-slate-400'}`}>
+                    <RefreshCcw size={18} />
+                 </button>
+            </div>
+          
+          <ResultCard hasData={amount > 0} emptyText={t.currencyCalc.emptyState}>
+             <div className="flex flex-col items-center py-2">
+                 <div className="text-slate-400 text-xs font-medium mb-1 flex items-center gap-1 bg-slate-900/50 px-2 py-0.5 rounded-full border border-slate-700/50">
+                    {title}
+                 </div>
+                 <span className="text-4xl font-bold text-emerald-400 tracking-tight leading-none mt-1">
+                     {result.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{toSymbol}</span>
+                 </span>
+             </div>
+             <div className="w-full h-px bg-slate-700/50 mb-2 mt-2"></div>
+             <div className="flex justify-between items-center text-xs text-slate-500">
+                <span>{t.currencyCalc.rateLabel}</span>
+                <div className="text-right">
+                    <div className="font-medium text-slate-400">1 USD = {rate} UAH</div>
+                    {rateDate && <div className="text-[10px] text-slate-600 mt-0.5">{t.currencyCalc.date} {rateDate}</div>}
+                </div>
+             </div>
+          </ResultCard>
+  
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+                <Input 
+                    label={t.currencyCalc.amountLabel}
+                    value={values.amount}
+                    isActive={activeField === 'amount'}
+                    onInputClick={() => setActiveField('amount')}
+                    suffix={fromSymbol}
+                    autoFocus
+                />
+            </div>
+             <button 
+                onClick={toggleDirection}
+                className="h-[52px] w-[52px] shrink-0 bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center text-blue-400 hover:bg-slate-700 active:scale-95 transition-all"
+            >
+                <ArrowLeftRight size={20} />
+            </button>
+          </div>
+
+          <Input 
+            label={t.currencyCalc.rateLabel}
+            value={values.rate}
+            isActive={activeField === 'rate'}
+            onInputClick={() => setActiveField('rate')}
+            suffix="UAH"
+          />
+          
+          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
+          <BackButton onClick={onBack} label={t.common.back} />
+        </div>
+      </div>
+    );
 };
 
 const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
@@ -489,6 +647,10 @@ const App: React.FC = () => {
 
           {currentView === AppView.DISCOUNT_CALC && (
             <DiscountCalc currency={settings.currency} t={t} onBack={handleBack} />
+          )}
+
+          {currentView === AppView.CURRENCY_CONVERTER && (
+            <CurrencyConverter t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.PROMO_CALC && (
