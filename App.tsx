@@ -121,20 +121,12 @@ const BackButton: React.FC<{ onClick: () => void, label: string }> = ({ onClick,
   </button>
 );
 
-const ResultCard: React.FC<{ hasData: boolean, emptyText: string, children: React.ReactNode }> = ({ hasData, emptyText, children }) => {
+const ResultCard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
-        <div className={`rounded-2xl border border-white/50 dark:border-white/10 shadow-lg transition-all duration-300 overflow-hidden shrink-0 backdrop-blur-xl
-            bg-white/80 dark:bg-slate-800/50
-            ${hasData ? 'p-5' : 'p-4'}`}>
-            {hasData ? (
-                <div className="flex flex-col animate-in fade-in">
-                    {children}
-                </div>
-            ) : (
-                 <div className="flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs text-center">
-                    {emptyText}
-                </div>
-            )}
+        <div className="rounded-2xl border border-white/50 dark:border-white/10 shadow-lg transition-all duration-300 overflow-hidden shrink-0 backdrop-blur-xl bg-white/80 dark:bg-slate-800/50 p-5">
+            <div className="flex flex-col animate-in fade-in">
+                {children}
+            </div>
         </div>
     )
 }
@@ -157,7 +149,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
       <div className="flex flex-col gap-4 w-full">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.discountCalc.title}</h2>
         
-        <ResultCard hasData={numPrice > 0} emptyText={t.discountCalc.emptyState}>
+        <ResultCard>
             <div className="flex flex-col items-center pt-2 pb-1">
                 {/* Regular Price (Strikethrough) */}
                 <div className="flex items-center gap-2 mb-1 opacity-80">
@@ -239,7 +231,7 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
       <div className="flex flex-col gap-4 w-full">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.marginCalc.title}</h2>
          
-         <ResultCard hasData={cost > 0 && sell > 0} emptyText={t.marginCalc.emptyState}>
+         <ResultCard>
             <div className="flex flex-col items-center mb-2">
                 <span className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-1 uppercase tracking-wide">{t.marginCalc.profit}</span>
                 <span className={`text-4xl font-bold leading-none drop-shadow-sm ${isProfitable ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
@@ -381,7 +373,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
                  </button>
             </div>
           
-          <ResultCard hasData={amount > 0} emptyText={t.currencyCalc.emptyState}>
+          <ResultCard>
              <div className="flex flex-col items-center py-2">
                  <div className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-1 flex items-center gap-1 bg-slate-100/50 dark:bg-slate-900/40 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">
                     {title}
@@ -456,9 +448,8 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
       <div className="flex flex-col gap-4 w-full">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.promoCalc.title}</h2>
         
-        <ResultCard hasData={price > 0 && totalQuantity > 0} emptyText={t.promoCalc.emptyState}>
-             {price > 0 && totalQuantity > 0 ? (
-                <div className="flex flex-col animate-in fade-in">
+        <ResultCard>
+             <div className="flex flex-col animate-in fade-in">
                  <div className="flex justify-between items-center mb-3">
                     <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t.promoCalc.pricePerItem}</span>
                     <span className="text-3xl font-bold text-slate-800 dark:text-white leading-none drop-shadow-sm">
@@ -478,12 +469,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
                      <span>{t.promoCalc.totalCost} ({n + x} {t.promoCalc.item})</span>
                      <span>{totalPrice.toLocaleString()} {currency}</span>
                 </div>
-                </div>
-             ) : (
-                <div className="flex items-center justify-center text-slate-400 dark:text-slate-500 text-xs text-center">
-                    {t.promoCalc.emptyState}
-                </div>
-             )}
+            </div>
         </ResultCard>
 
         <Input 
@@ -561,7 +547,7 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
       <div className="flex flex-col gap-4 w-full">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.unitPriceCalc.title}</h2>
          
-         <ResultCard hasData={numPrice > 0 && numWeight > 0} emptyText={t.unitPriceCalc.emptyState}>
+         <ResultCard>
             <div className="flex justify-between items-center mb-3">
                 <span className="text-slate-500 dark:text-slate-400 text-sm">{t.unitPriceCalc.costPer} {labelUnit}</span>
                 <span className="text-3xl font-bold text-blue-500 dark:text-blue-400 leading-none drop-shadow-sm">
@@ -628,7 +614,9 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
   const p = parseFloat(values.price) || 0;
   const d = parseFloat(values.percent) || 0;
 
-  const original = (d > 0 && d < 100) ? p / (1 - (d/100)) : 0;
+  // Modified logic: if discount is 0 or empty, the original price is the same as the current price (p)
+  // This prevents division by 1 when d=0 from looking like an empty state if we were hiding it before.
+  const original = (d >= 0 && d < 100) ? p / (1 - (d/100)) : 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -638,7 +626,7 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
            {t.reverseCalc.info}
          </div>
 
-         <ResultCard hasData={original > 0} emptyText={t.reverseCalc.emptyState}>
+         <ResultCard>
             <div className="flex justify-between items-center mb-3">
                 <span className="text-slate-500 dark:text-slate-400 text-sm">{t.reverseCalc.regularPrice}</span>
                 <span className="text-3xl font-bold text-slate-700 dark:text-slate-200 line-through decoration-red-500/50 decoration-2 leading-none">
