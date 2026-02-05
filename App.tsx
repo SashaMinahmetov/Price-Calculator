@@ -146,7 +146,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-3 w-full">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.discountCalc.title}</h2>
         
         <ResultCard>
@@ -179,7 +179,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
         </ResultCard>
 
         {/* Inputs */}
-        <div className="grid grid-cols-2 gap-3 mt-2">
+        <div className="grid grid-cols-2 gap-3">
              <Input 
                 label={t.discountCalc.priceLabel}
                 placeholder="" 
@@ -228,7 +228,7 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-3 w-full">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.marginCalc.title}</h2>
          
          <ResultCard>
@@ -263,7 +263,6 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
             isActive={activeField === 'cost'}
             onInputClick={() => setActiveField('cost')}
             suffix={currency}
-            className="mt-2"
             autoFocus
           />
           <Input 
@@ -365,7 +364,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
   
     return (
       <div className="flex flex-col h-full">
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-3 w-full">
             <div className="flex justify-between items-center px-2">
                  <h2 className="text-xl font-bold text-slate-800 dark:text-white/90">{t.currencyCalc.title}</h2>
                  <button onClick={handleRefresh} className={`p-2 rounded-full hover:bg-white/50 dark:hover:bg-slate-700/50 backdrop-blur-sm transition-colors ${loading ? 'animate-spin text-blue-500' : 'text-slate-400'}`}>
@@ -392,7 +391,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
              </div>
           </ResultCard>
   
-          <div className="flex gap-2 items-end mt-2">
+          <div className="flex gap-2 items-end mt-1">
             <div className="flex-1">
                 <Input 
                     label={t.currencyCalc.amountLabel}
@@ -445,7 +444,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-3 w-full">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.promoCalc.title}</h2>
         
         <ResultCard>
@@ -544,7 +543,7 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-3 w-full">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.unitPriceCalc.title}</h2>
          
          <ResultCard>
@@ -620,7 +619,7 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-3 w-full">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.reverseCalc.title}</h2>
          <div className="bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-sm p-2 rounded-xl text-xs text-blue-600 dark:text-blue-200 border border-blue-200/50 dark:border-blue-900/50 text-center">
            {t.reverseCalc.info}

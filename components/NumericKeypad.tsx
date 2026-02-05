@@ -18,7 +18,7 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0'];
 
   return (
-    <div className="flex flex-col gap-3 pt-4 pb-2">
+    <div className="flex flex-col gap-3 pt-2 pb-2">
       <div className="grid grid-cols-3 gap-3">
         {keys.map((key) => (
           <button
