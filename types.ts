@@ -36,6 +36,8 @@ export interface TelegramWebApp {
   expand: () => void;
   close: () => void;
   platform: string;
+  setHeaderColor?: (color: string) => void;
+  setBackgroundColor?: (color: string) => void;
   MainButton: {
     text: string;
     color: string;
