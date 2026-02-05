@@ -14,7 +14,7 @@ export const translations = {
       margin: "Маржа и Наценка",
       marginSub: "Расчет прибыли",
       currency: "Конвертер валют",
-      currencySub: "USD <-> UAH",
+      currencySub: "USD, EUR, PLN <-> UAH",
       settings: "Настройки",
       settingsSub: "Язык и тема"
     },
@@ -25,7 +25,7 @@ export const translations = {
       themeDark: "Темная",
       themeLight: "Светлая",
       back: "В главное меню",
-      version: "Версия 1.5.0",
+      version: "Версия 1.6.0",
       save: "Вы экономите",
       total: "Итоговая цена",
       next: "Далее",
@@ -83,7 +83,7 @@ export const translations = {
       amountLabel: "Сумма",
       rateLabel: "Курс (НБУ)",
       toUah: "В гривну",
-      toUsd: "В доллар",
+      toUsd: "В валюту",
       result: "Результат",
       emptyState: "Введите сумму",
       date: "от"
@@ -104,7 +104,7 @@ export const translations = {
       margin: "Маржа та Націнка",
       marginSub: "Розрахунок прибутку",
       currency: "Конвертер валют",
-      currencySub: "USD <-> UAH",
+      currencySub: "USD, EUR, PLN <-> UAH",
       settings: "Налаштування",
       settingsSub: "Мова та тема"
     },
@@ -115,7 +115,7 @@ export const translations = {
       themeDark: "Темна",
       themeLight: "Світла",
       back: "В головне меню",
-      version: "Версія 1.5.0",
+      version: "Версія 1.6.0",
       save: "Ви заощаджуєте",
       total: "Підсумкова ціна",
       next: "Далі",
@@ -173,7 +173,7 @@ export const translations = {
       amountLabel: "Сума",
       rateLabel: "Курс (НБУ)",
       toUah: "В гривню",
-      toUsd: "В долар",
+      toUsd: "У валюту",
       result: "Результат",
       emptyState: "Введіть суму",
       date: "від"

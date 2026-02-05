@@ -280,20 +280,28 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
   );
 };
 
+// Supported Currencies Configuration
+const CURRENCIES = [
+  { code: 'USD', symbol: '$', name: 'USD' },
+  { code: 'EUR', symbol: '€', name: 'EUR' },
+  { code: 'PLN', symbol: 'zł', name: 'PLN' }
+];
+
 const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBack }) => {
-    // State to toggle direction: 'USD_TO_UAH' (default) or 'UAH_TO_USD'
-    const [direction, setDirection] = useState<'USD_TO_UAH' | 'UAH_TO_USD'>('USD_TO_UAH');
+    // State to toggle direction: 'FOREIGN_TO_UAH' (default) or 'UAH_TO_FOREIGN'
+    const [direction, setDirection] = useState<'FOREIGN_TO_UAH' | 'UAH_TO_FOREIGN'>('FOREIGN_TO_UAH');
+    const [selectedCurrency, setSelectedCurrency] = useState('USD');
     const [loading, setLoading] = useState(false);
     const [rateDate, setRateDate] = useState<string>('');
     
     // We store rate as a string in inputs for editing, but logic uses float
     const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext, setValues } = useCalculatorInput(
-      { amount: '', rate: '41.50' }, // Default fallback rate
+      { amount: '', rate: '0.00' }, 
       'amount',
       ['amount', 'rate']
     );
 
-    const performFetch = async () => {
+    const performFetch = async (currencyCode: string) => {
         setLoading(true);
         try {
             // Get today's date in YYYYMMDD format to force NBU to return today's rate
@@ -304,7 +312,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
             const dateParam = `${year}${month}${day}`;
 
             // Try to fetch specifically for today to avoid getting "next banking day" rates if NBU served them early
-            let response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&date=${dateParam}&json`);
+            let response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${currencyCode}&date=${dateParam}&json`);
             
             let data;
             if (response.ok) {
@@ -313,7 +321,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
 
             // Fallback to default endpoint if specific date returns empty (e.g. edge cases)
             if (!data || data.length === 0) {
-                 response = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json');
+                 response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${currencyCode}&json`);
                  if (response.ok) {
                     data = await response.json();
                  }
@@ -330,36 +338,38 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
         }
     };
   
+    // Fetch when currency changes
     useEffect(() => {
-        performFetch();
-    }, []);
+        performFetch(selectedCurrency);
+    }, [selectedCurrency]);
   
     const amount = parseFloat(values.amount) || 0;
     const rate = parseFloat(values.rate) || 0;
+    const currentSymbol = CURRENCIES.find(c => c.code === selectedCurrency)?.symbol || '$';
     
     let result = 0;
-    let fromSymbol = "$";
-    let toSymbol = "₴";
-    let title = t.currencyCalc.toUah;
+    let fromSymbol = "";
+    let toSymbol = "";
+    let title = "";
 
-    if (direction === 'USD_TO_UAH') {
+    if (direction === 'FOREIGN_TO_UAH') {
         result = amount * rate;
-        fromSymbol = "$";
+        fromSymbol = currentSymbol;
         toSymbol = "₴";
-        title = "USD ➞ UAH";
+        title = `${selectedCurrency} ➞ UAH`;
     } else {
         result = rate > 0 ? amount / rate : 0;
         fromSymbol = "₴";
-        toSymbol = "$";
-        title = "UAH ➞ USD";
+        toSymbol = currentSymbol;
+        title = `UAH ➞ ${selectedCurrency}`;
     }
   
     const toggleDirection = () => {
-        setDirection(prev => prev === 'USD_TO_UAH' ? 'UAH_TO_USD' : 'USD_TO_UAH');
+        setDirection(prev => prev === 'FOREIGN_TO_UAH' ? 'UAH_TO_FOREIGN' : 'FOREIGN_TO_UAH');
     };
 
     const handleRefresh = () => {
-        performFetch();
+        performFetch(selectedCurrency);
     }
   
     return (
@@ -370,6 +380,23 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
                  <button onClick={handleRefresh} className={`p-2 rounded-full hover:bg-white/50 dark:hover:bg-slate-700/50 backdrop-blur-sm transition-colors ${loading ? 'animate-spin text-blue-500' : 'text-slate-400'}`}>
                     <RefreshCcw size={18} />
                  </button>
+            </div>
+
+            {/* Currency Selector */}
+            <div className="grid grid-cols-3 gap-2 px-1">
+                {CURRENCIES.map(curr => (
+                    <button
+                        key={curr.code}
+                        onClick={() => setSelectedCurrency(curr.code)}
+                        className={`py-2 rounded-xl text-sm font-bold transition-all border
+                            ${selectedCurrency === curr.code 
+                                ? 'bg-emerald-600 border-emerald-500 text-white shadow-emerald-900/20 shadow-md' 
+                                : 'bg-white/60 dark:bg-slate-800/40 border-white/40 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-800/60'
+                            }`}
+                    >
+                        {curr.name}
+                    </button>
+                ))}
             </div>
           
           <ResultCard>
@@ -385,7 +412,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
              <div className="flex justify-between items-center text-xs text-slate-500">
                 <span>{t.currencyCalc.rateLabel}</span>
                 <div className="text-right">
-                    <div className="font-medium text-slate-600 dark:text-slate-400">1 USD = {rate} UAH</div>
+                    <div className="font-medium text-slate-600 dark:text-slate-400">1 {selectedCurrency} = {rate} UAH</div>
                     {rateDate && <div className="text-[10px] text-slate-500 dark:text-slate-600 mt-0.5">{t.currencyCalc.date} {rateDate}</div>}
                 </div>
              </div>
