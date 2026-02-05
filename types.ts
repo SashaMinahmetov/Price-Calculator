@@ -1,6 +1,7 @@
 import React from 'react';
 
 export type Language = 'ru' | 'uk';
+export type Theme = 'light' | 'dark';
 
 export enum AppView {
   MAIN_MENU = 'MAIN_MENU',
@@ -15,6 +16,7 @@ export enum AppView {
 export interface SettingsState {
   currency: string;
   language: Language;
+  theme: Theme;
 }
 
 // Telegram Web App Types

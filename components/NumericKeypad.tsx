@@ -24,14 +24,14 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
           <button
             key={key}
             onClick={() => onKeyPress(key)}
-            className="h-14 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-2xl font-semibold active:scale-95 transition-all shadow-sm border-b-2 border-slate-900 active:border-b-0"
+            className="h-14 rounded-xl bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-2xl font-semibold active:scale-95 transition-all shadow-sm border border-slate-200 dark:border-transparent border-b-2 border-b-slate-300 dark:border-b-slate-900 active:border-b active:translate-y-[1px]"
           >
             {key}
           </button>
         ))}
         <button
           onClick={onDelete}
-          className="h-14 rounded-xl bg-slate-700 hover:bg-red-900/50 text-white flex items-center justify-center active:scale-95 transition-all shadow-sm border-b-2 border-slate-900 active:border-b-0"
+          className="h-14 rounded-xl bg-white dark:bg-slate-700 hover:bg-red-50 dark:hover:bg-red-900/50 text-slate-800 dark:text-white flex items-center justify-center active:scale-95 transition-all shadow-sm border border-slate-200 dark:border-transparent border-b-2 border-b-slate-300 dark:border-b-slate-900 active:border-b active:translate-y-[1px]"
         >
           <Delete size={24} />
         </button>
