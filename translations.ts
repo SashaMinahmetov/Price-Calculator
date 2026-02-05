@@ -11,6 +11,8 @@ export const translations = {
       unitPriceSub: "Сравнение упаковок",
       reverse: "Регулярна цена",
       reverseSub: "Узнать цену без скидки",
+      margin: "Маржа и Наценка",
+      marginSub: "Расчет прибыли",
       currency: "Конвертер валют",
       currencySub: "USD <-> UAH",
       settings: "Настройки",
@@ -23,7 +25,7 @@ export const translations = {
       themeDark: "Темная",
       themeLight: "Светлая",
       back: "В главное меню",
-      version: "Версия 1.4.0",
+      version: "Версия 1.5.0",
       save: "Вы экономите",
       total: "Итоговая цена",
       next: "Далее",
@@ -67,6 +69,15 @@ export const translations = {
       saved: "Вы сэкономили",
       emptyState: "Введите цену и % скидки"
     },
+    marginCalc: {
+      title: "Маржа и Наценка",
+      costLabel: "Закупочная цена",
+      sellLabel: "Цена на полке",
+      profit: "Прибыль",
+      markup: "Наценка",
+      margin: "Маржа",
+      emptyState: "Введите закупку и цену продажи"
+    },
     currencyCalc: {
       title: "Конвертер валют",
       amountLabel: "Сумма",
@@ -85,11 +96,13 @@ export const translations = {
       discount: "Ціна зі знижкою",
       discountSub: "Ціна - %",
       promo: "Акція N+X",
-      promoSub: "Купи N, отримай X",
+      promoSub: "Купи N, отрима X",
       unitPrice: "Ціна за вагу/об'єм",
       unitPriceSub: "Порівняння упаковок",
       reverse: "Регулярна ціна",
       reverseSub: "Дізнатись ціну без знижки",
+      margin: "Маржа та Націнка",
+      marginSub: "Розрахунок прибутку",
       currency: "Конвертер валют",
       currencySub: "USD <-> UAH",
       settings: "Налаштування",
@@ -102,7 +115,7 @@ export const translations = {
       themeDark: "Темна",
       themeLight: "Світла",
       back: "В головне меню",
-      version: "Версія 1.4.0",
+      version: "Версія 1.5.0",
       save: "Ви заощаджуєте",
       total: "Підсумкова ціна",
       next: "Далі",
@@ -145,6 +158,15 @@ export const translations = {
       regularPrice: "Регулярна ціна",
       saved: "Ви заощадили",
       emptyState: "Введіть ціну та % знижки"
+    },
+    marginCalc: {
+      title: "Маржа та Націнка",
+      costLabel: "Закупівельна ціна",
+      sellLabel: "Ціна на полиці",
+      profit: "Прибуток",
+      markup: "Націнка",
+      margin: "Маржа",
+      emptyState: "Введіть закупівлю та ціну"
     },
     currencyCalc: {
       title: "Конвертер валют",

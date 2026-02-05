@@ -11,7 +11,8 @@ import {
   ArrowLeftRight,
   RefreshCcw,
   Moon,
-  Sun
+  Sun,
+  TrendingUp
 } from 'lucide-react';
 import { AppView, SettingsState, Language, TelegramUser, Theme } from './types';
 import { Input } from './components/Input';
@@ -70,6 +71,7 @@ const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation
     { id: AppView.PROMO_CALC, title: t.mainMenu.promo, icon: <Percent size={20} />, sub: t.mainMenu.promoSub, color: "text-purple-500 dark:text-purple-400" },
     { id: AppView.UNIT_PRICE_CALC, title: t.mainMenu.unitPrice, icon: <Scale size={20} />, sub: t.mainMenu.unitPriceSub, color: "text-green-500 dark:text-green-400" },
     { id: AppView.REVERSE_CALC, title: t.mainMenu.reverse, icon: <Briefcase size={20} />, sub: t.mainMenu.reverseSub, color: "text-orange-500 dark:text-orange-400" },
+    { id: AppView.MARGIN_CALC, title: t.mainMenu.margin, icon: <TrendingUp size={20} />, sub: t.mainMenu.marginSub, color: "text-indigo-500 dark:text-indigo-400" },
     { id: AppView.CURRENCY_CONVERTER, title: t.mainMenu.currency, icon: <DollarSign size={20} />, sub: t.mainMenu.currencySub, color: "text-emerald-500 dark:text-emerald-400" },
     { id: AppView.SETTINGS, title: t.mainMenu.settings, icon: <SettingsIcon size={20} />, sub: t.mainMenu.settingsSub, color: "text-slate-500 dark:text-slate-400" },
   ];
@@ -209,6 +211,79 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
         
         <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
         <BackButton onClick={onBack} label={t.common.back} />
+      </div>
+    </div>
+  );
+};
+
+const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
+    { cost: '', sell: '' }, 
+    'cost',
+    ['cost', 'sell']
+  );
+
+  const cost = parseFloat(values.cost) || 0;
+  const sell = parseFloat(values.sell) || 0;
+
+  const profit = sell - cost;
+  // Markup = (Profit / Cost) * 100
+  const markup = cost > 0 ? (profit / cost) * 100 : 0;
+  // Margin = (Profit / Sell) * 100
+  const margin = sell > 0 ? (profit / sell) * 100 : 0;
+
+  const isProfitable = profit >= 0;
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col gap-4 w-full">
+         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.marginCalc.title}</h2>
+         
+         <ResultCard hasData={cost > 0 && sell > 0} emptyText={t.marginCalc.emptyState}>
+            <div className="flex flex-col items-center mb-2">
+                <span className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-1 uppercase tracking-wide">{t.marginCalc.profit}</span>
+                <span className={`text-4xl font-bold leading-none drop-shadow-sm ${isProfitable ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                    {profit > 0 ? '+' : ''}{profit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-xl">{currency}</span>
+                </span>
+            </div>
+            
+            <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 mb-3 mt-1"></div>
+
+            <div className="grid grid-cols-2 gap-4">
+                 <div className="flex flex-col items-center">
+                    <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">{t.marginCalc.markup}</span>
+                    <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-lg border border-indigo-200/50 dark:border-indigo-500/20 font-bold">
+                        {markup.toFixed(1)}%
+                    </div>
+                 </div>
+                 <div className="flex flex-col items-center">
+                    <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">{t.marginCalc.margin}</span>
+                    <div className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 px-3 py-1 rounded-lg border border-blue-200/50 dark:border-blue-500/20 font-bold">
+                        {margin.toFixed(1)}%
+                    </div>
+                 </div>
+            </div>
+         </ResultCard>
+
+         <Input 
+            label={t.marginCalc.costLabel}
+            value={values.cost}
+            isActive={activeField === 'cost'}
+            onInputClick={() => setActiveField('cost')}
+            suffix={currency}
+            className="mt-2"
+            autoFocus
+          />
+          <Input 
+            label={t.marginCalc.sellLabel}
+            value={values.sell}
+            isActive={activeField === 'sell'}
+            onInputClick={() => setActiveField('sell')}
+            suffix={currency}
+          />
+          
+          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
+          <BackButton onClick={onBack} label={t.common.back} />
       </div>
     </div>
   );
@@ -692,6 +767,10 @@ const App: React.FC = () => {
 
           {currentView === AppView.REVERSE_CALC && (
              <ReverseCalc currency={settings.currency} t={t} onBack={handleBack} />
+          )}
+          
+          {currentView === AppView.MARGIN_CALC && (
+             <MarginCalc currency={settings.currency} t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.SETTINGS && (
