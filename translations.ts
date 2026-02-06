@@ -28,11 +28,7 @@ export const translations = {
       version: "Version 1.7.0",
       save: "You save",
       total: "Total Price",
-      next: "Next",
-      device: "Device",
-      mobile: "Phone",
-      tablet: "Tablet",
-      desktop: "PC"
+      next: "Next"
     },
     discountCalc: {
       title: "Discount Calculator",
@@ -127,11 +123,7 @@ export const translations = {
       version: "Версия 1.7.0",
       save: "Вы экономите",
       total: "Итоговая цена",
-      next: "Далее",
-      device: "Устройство",
-      mobile: "Телефон",
-      tablet: "Планшет",
-      desktop: "ПК"
+      next: "Далее"
     },
     discountCalc: {
       title: "Калькулятор скидки",
@@ -226,11 +218,7 @@ export const translations = {
       version: "Версія 1.7.0",
       save: "Ви заощаджуєте",
       total: "Підсумкова ціна",
-      next: "Далі",
-      device: "Пристрій",
-      mobile: "Телефон",
-      tablet: "Планшет",
-      desktop: "ПК"
+      next: "Далі"
     },
     discountCalc: {
       title: "Калькулятор знижки",

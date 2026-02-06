@@ -14,12 +14,9 @@ import {
   Sun,
   TrendingUp,
   ArrowDown,
-  Monitor,
-  Smartphone,
-  Tablet,
   ChevronLeft
 } from 'lucide-react';
-import { AppView, SettingsState, Language, TelegramUser, Theme, DeviceMode } from './types';
+import { AppView, SettingsState, Language, TelegramUser, Theme } from './types';
 import { Input } from './components/Input';
 import { NumericKeypad } from './components/NumericKeypad';
 import { translations, Translation } from './translations';
@@ -152,12 +149,9 @@ const ResultCard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     )
 }
 
-const getLayoutClass = (mode: DeviceMode) => {
-    if (mode === 'mobile') return "flex flex-col h-full gap-3";
-    return "grid grid-cols-2 gap-6 h-full items-start";
-};
+const layoutClass = "flex flex-col h-full gap-3";
 
-const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
+const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', discount: '' }, 
     'price',
@@ -171,7 +165,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
   const saved = numPrice - finalPrice;
 
   return (
-    <div className={getLayoutClass(mode)}>
+    <div className={layoutClass}>
       <div className="flex flex-col gap-3 w-full col-span-1">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.discountCalc.title}</h2>
         
@@ -187,7 +181,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
                 <span className="text-5xl font-bold text-green-500 dark:text-green-400 tracking-tight leading-none mb-1 drop-shadow-sm">
                     {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{currency}</span>
                 </span>
-                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider opacity-60">
+                <span className="text-slate-500 uppercase font-bold tracking-wider opacity-60 text-[10px]">
                     {t.discountCalc.finalPrice}
                 </span>
             </div>
@@ -233,7 +227,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
   );
 };
 
-const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
+const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { cost: '', sell: '' }, 
     'cost',
@@ -249,7 +243,7 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
   const isProfitable = profit >= 0;
 
   return (
-    <div className={getLayoutClass(mode)}>
+    <div className={layoutClass}>
       <div className="flex flex-col gap-3 w-full col-span-1">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.marginCalc.title}</h2>
          
@@ -311,7 +305,7 @@ const CURRENCIES = [
   { code: 'PLN', symbol: 'zł', name: 'PLN' }
 ];
 
-const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void, mode: DeviceMode }> = ({ t, onBack, mode }) => {
+const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBack }) => {
     const [direction, setDirection] = useState<'FOREIGN_TO_UAH' | 'UAH_TO_FOREIGN'>('FOREIGN_TO_UAH');
     const [selectedCurrency, setSelectedCurrency] = useState('USD');
     const [loading, setLoading] = useState(false);
@@ -390,7 +384,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void, mode: De
     }
   
     return (
-      <div className={getLayoutClass(mode)}>
+      <div className={layoutClass}>
         <div className="flex flex-col gap-3 w-full col-span-1">
             <div className="flex justify-between items-center px-2">
                  <h2 className="text-xl font-bold text-slate-800 dark:text-white/90">{t.currencyCalc.title}</h2>
@@ -470,7 +464,7 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void, mode: De
     );
 };
 
-const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
+const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
   const [modeCalc, setModeCalc] = useState<'STANDARD' | 'REVERSE'>('STANDARD');
   
   const strings = t.promoCalc || {
@@ -529,7 +523,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
   };
 
   return (
-    <div className={getLayoutClass(mode)}>
+    <div className={layoutClass}>
       <div className="flex flex-col gap-3 w-full col-span-1">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{strings.title}</h2>
         
@@ -681,7 +675,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
   );
 };
 
-const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
+const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', weight: '' }, 
     'price',
@@ -721,7 +715,7 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
   const pricePerSmallUnit = pricePerUnit / 10;
 
   return (
-    <div className={getLayoutClass(mode)}>
+    <div className={layoutClass}>
       <div className="flex flex-col gap-3 w-full col-span-1">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.unitPriceCalc.title}</h2>
          
@@ -784,7 +778,7 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
   );
 };
 
-const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
+const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', percent: '' }, 
     'price',
@@ -797,7 +791,7 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
   const original = (d >= 0 && d < 100) ? p / (1 - (d/100)) : 0;
 
   return (
-    <div className={getLayoutClass(mode)}>
+    <div className={layoutClass}>
       <div className="flex flex-col gap-3 w-full col-span-1">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-3">{t.reverseCalc.title}</h2>
          
@@ -852,8 +846,7 @@ const App: React.FC = () => {
   const [settings, setSettings] = useState<SettingsState>({ 
     currency: '₴', 
     language: 'uk', 
-    theme: 'dark',
-    deviceMode: 'mobile' // Default to mobile
+    theme: 'dark'
   });
   const hasLoggedRef = useRef(false);
 
@@ -898,18 +891,9 @@ const App: React.FC = () => {
 
   const handleBack = () => setCurrentView(AppView.MAIN_MENU);
 
-  // Dynamic max-width based on device mode
-  const getContainerMaxWidth = () => {
-      switch(settings.deviceMode) {
-          case 'tablet': return 'max-w-3xl';
-          case 'desktop': return 'max-w-5xl';
-          default: return 'max-w-md';
-      }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50 dark:from-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex justify-center selection:bg-blue-500/30 transition-colors duration-500">
-      <div className={`w-full ${getContainerMaxWidth()} flex flex-col h-[100dvh] transition-all duration-300`}>
+      <div className={`w-full max-w-md flex flex-col h-[100dvh] transition-all duration-300`}>
         
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 scroll-smooth flex flex-col">
           {currentView === AppView.MAIN_MENU && (
@@ -917,27 +901,27 @@ const App: React.FC = () => {
           )}
 
           {currentView === AppView.DISCOUNT_CALC && (
-            <DiscountCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
+            <DiscountCalc currency={settings.currency} t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.CURRENCY_CONVERTER && (
-            <CurrencyConverter t={t} onBack={handleBack} mode={settings.deviceMode} />
+            <CurrencyConverter t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.PROMO_CALC && (
-             <PromoCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
+             <PromoCalc currency={settings.currency} t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.UNIT_PRICE_CALC && (
-             <UnitPriceCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
+             <UnitPriceCalc currency={settings.currency} t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.REVERSE_CALC && (
-             <ReverseCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
+             <ReverseCalc currency={settings.currency} t={t} onBack={handleBack} />
           )}
           
           {currentView === AppView.MARGIN_CALC && (
-             <MarginCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
+             <MarginCalc currency={settings.currency} t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.SETTINGS && (
@@ -988,31 +972,6 @@ const App: React.FC = () => {
                         >
                           {themeOpt.icon}
                           {themeOpt.label}
-                        </button>
-                      ))}
-                    </div>
-                 </div>
-
-                 {/* Device Mode Settings */}
-                 <div>
-                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t.common.device}</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { code: 'mobile', label: t.common.mobile, icon: <Smartphone size={18} /> },
-                        { code: 'tablet', label: t.common.tablet, icon: <Tablet size={18} /> },
-                        { code: 'desktop', label: t.common.desktop, icon: <Monitor size={18} /> }
-                      ].map(deviceOpt => (
-                        <button
-                          key={deviceOpt.code}
-                          onClick={() => setSettings(s => ({ ...s, deviceMode: deviceOpt.code as DeviceMode }))}
-                          className={`p-3 rounded-xl border font-medium transition-all active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm text-xs ${
-                            settings.deviceMode === deviceOpt.code 
-                            ? 'bg-blue-600 border-blue-500 text-white shadow-blue-900/30' 
-                            : 'bg-white/60 dark:bg-slate-800/40 border-white/40 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-700/50 backdrop-blur-sm'
-                          }`}
-                        >
-                          {deviceOpt.icon}
-                          {deviceOpt.label}
                         </button>
                       ))}
                     </div>
