@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type Language = 'ru' | 'uk';
+export type Language = 'ru' | 'uk' | 'en';
 export type Theme = 'light' | 'dark';
 
 export enum AppView {

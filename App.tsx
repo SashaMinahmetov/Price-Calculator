@@ -452,21 +452,22 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
   const [mode, setMode] = useState<'STANDARD' | 'REVERSE'>('STANDARD');
   
   // Safe string access to prevent crash
+  // Fallback to English/Generic values if translation is missing for any reason
   const strings = t.promoCalc || {
-      title: "Акция N+X",
-      modeStandard: "Цена за шт",
-      modeReverse: "Расчет заказа",
-      priceLabel: "Цена (база)",
-      buyLabel: "Купи (N)",
-      freeLabel: "Бонус (X)",
-      targetLabel: "Нужно всего",
-      pricePerItem: "Цена за 1 шт по акции",
-      realDiscount: "Фактическая скидка",
-      totalCost: "Общая сумма",
-      toInvoice: "Выписать (Оплатить)",
-      toAdd: "Получите бонусом",
-      item: "шт",
-      emptyState: "Введите цену и условия (N+X)"
+      title: "Promo N+X",
+      modeStandard: "Price per Item",
+      modeReverse: "Order Calc",
+      priceLabel: "Base Price",
+      buyLabel: "Buy (N)",
+      freeLabel: "Get Free (X)",
+      targetLabel: "Target Total",
+      pricePerItem: "Promo Price per 1",
+      realDiscount: "Real Discount",
+      totalCost: "Total Cost",
+      toInvoice: "To Invoice (Pay)",
+      toAdd: "Bonus (Free)",
+      item: "pcs",
+      emptyState: "Enter price & conditions"
   };
 
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext: originalHandleNext } = useCalculatorInput(
@@ -833,7 +834,7 @@ const App: React.FC = () => {
   const [user, setUser] = useState<TelegramUser | undefined>(undefined);
   const [settings, setSettings] = useState<SettingsState>({ 
     currency: '₴', 
-    language: 'uk',
+    language: 'uk', // Default to Ukrainian as per request context, will auto-detect below
     theme: 'dark'
   });
   // Ref to ensure we don't log multiple times in one session if component re-renders
@@ -856,7 +857,7 @@ const App: React.FC = () => {
         }
 
         // Auto-detect language if available and matches our supported languages
-        if (telegramUser.language_code === 'ru' || telegramUser.language_code === 'uk') {
+        if (telegramUser.language_code && ['ru', 'uk', 'en'].includes(telegramUser.language_code)) {
           setSettings(prev => ({ ...prev, language: telegramUser.language_code as Language }));
         }
       }
@@ -881,7 +882,7 @@ const App: React.FC = () => {
     }
   }, [settings.theme]);
 
-  const t = translations[settings.language];
+  const t = translations[settings.language] || translations.uk;
 
   const handleBack = () => setCurrentView(AppView.MAIN_MENU);
 
@@ -931,7 +932,8 @@ const App: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { code: 'uk', label: 'Українська' },
-                        { code: 'ru', label: 'Русский' }
+                        { code: 'ru', label: 'Русский' },
+                        { code: 'en', label: 'English' }
                       ].map(lang => (
                         <button
                           key={lang.code}

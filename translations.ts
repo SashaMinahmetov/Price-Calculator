@@ -1,4 +1,99 @@
 export const translations = {
+  en: {
+    mainMenu: {
+      welcome: "👋 Welcome!",
+      chooseOption: "Choose a feature",
+      discount: "Discount Calculator",
+      discountSub: "Price - %",
+      promo: "Promo N+X",
+      promoSub: "Buy N, Get X Free",
+      unitPrice: "Price per Unit",
+      unitPriceSub: "Compare package sizes",
+      reverse: "Reverse Price",
+      reverseSub: "Find regular price",
+      margin: "Margin & Markup",
+      marginSub: "Profit calculation",
+      currency: "Currency Converter",
+      currencySub: "USD, EUR, PLN <-> UAH",
+      settings: "Settings",
+      settingsSub: "Language & Theme"
+    },
+    common: {
+      currency: "Currency",
+      language: "Language",
+      theme: "Theme",
+      themeDark: "Dark",
+      themeLight: "Light",
+      back: "Main Menu",
+      version: "Version 1.6.0",
+      save: "You save",
+      total: "Total Price",
+      next: "Next",
+    },
+    discountCalc: {
+      title: "Discount Calculator",
+      priceLabel: "Shelf Price",
+      discountLabel: "Discount (%)",
+      finalPrice: "Discounted Price",
+      emptyState: "Enter price & %"
+    },
+    promoCalc: {
+      title: "Promo N+X",
+      modeStandard: "Price per Item",
+      modeReverse: "Order Calc",
+      priceLabel: "Base Price",
+      buyLabel: "Buy (N)",
+      freeLabel: "Get Free (X)",
+      targetLabel: "Target Total",
+      pricePerItem: "Promo Price per 1",
+      realDiscount: "Real Discount",
+      totalCost: "Total Cost",
+      toInvoice: "To Invoice (Pay)",
+      toAdd: "Bonus (Free)",
+      item: "pcs",
+      emptyState: "Enter price & conditions"
+    },
+    unitPriceCalc: {
+      title: "Price per KG/L",
+      priceLabel: "Item Price",
+      weightLabel: "Weight/Vol",
+      costPer: "Price per 1",
+      costPer100: "Price per 100",
+      g: "g",
+      kg: "kg",
+      ml: "ml",
+      l: "l",
+      emptyState: "Enter price & weight"
+    },
+    reverseCalc: {
+      title: "Regular Price",
+      info: "Find original price from discounted.",
+      discountedPrice: "Discounted Price",
+      percent: "Discount %",
+      regularPrice: "Regular Price",
+      saved: "You saved",
+      emptyState: "Enter price & discount"
+    },
+    marginCalc: {
+      title: "Margin & Markup",
+      costLabel: "Cost Price",
+      sellLabel: "Sell Price",
+      profit: "Profit",
+      markup: "Markup",
+      margin: "Margin",
+      emptyState: "Enter cost & sell price"
+    },
+    currencyCalc: {
+      title: "Currency Converter",
+      amountLabel: "Amount",
+      rateLabel: "Rate (NBU)",
+      toUah: "To UAH",
+      toUsd: "To Currency",
+      result: "Result",
+      emptyState: "Enter amount",
+      date: "from"
+    }
+  },
   ru: {
     mainMenu: {
       welcome: "👋 Добро пожаловать!",
@@ -101,7 +196,7 @@ export const translations = {
       discount: "Ціна зі знижкою",
       discountSub: "Ціна - %",
       promo: "Акція N+X",
-      promoSub: "Купи N, отрима X",
+      promoSub: "Купи N, отримай X",
       unitPrice: "Ціна за вагу/об'єм",
       unitPriceSub: "Порівняння упаковок",
       reverse: "Регулярна ціна",
