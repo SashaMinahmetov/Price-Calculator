@@ -104,12 +104,7 @@ const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation
 
   return (
     <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-      {/* Compact Header with Glass Effect */}
-      <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-md py-3 px-4 rounded-2xl mb-2 border border-white/40 dark:border-white/5 shadow-sm text-center">
-        <p className="text-slate-600 dark:text-slate-300 text-sm font-medium">{t.mainMenu.chooseOption}</p>
-      </div>
-
-      <div className="grid gap-3">
+      <div className="grid gap-3 mt-2">
       {menuItems.map((item) => (
         <button
           key={item.id}
@@ -804,11 +799,8 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
   return (
     <div className={getLayoutClass(mode)}>
       <div className="flex flex-col gap-3 w-full col-span-1">
-         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.reverseCalc.title}</h2>
-         <div className="bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-sm p-2 rounded-xl text-xs text-blue-600 dark:text-blue-200 border border-blue-200/50 dark:border-blue-900/50 text-center">
-           {t.reverseCalc.info}
-         </div>
-
+         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-3">{t.reverseCalc.title}</h2>
+         
          <ResultCard>
             <div className="flex justify-between items-center mb-3">
                 <span className="text-slate-500 dark:text-slate-400 text-sm">{t.reverseCalc.regularPrice}</span>
@@ -1024,15 +1016,6 @@ const App: React.FC = () => {
                         </button>
                       ))}
                     </div>
-                 </div>
-                 
-                 {/* Currency Display (Read only) */}
-                 <div>
-                     <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t.common.currency}</label>
-                     <div className="p-4 bg-white/60 dark:bg-slate-800/40 backdrop-blur-sm rounded-xl border border-white/40 dark:border-white/10 text-slate-700 dark:text-slate-300 flex justify-between items-center shadow-sm">
-                        <span>Українська гривня (UAH)</span>
-                        <span className="font-bold text-slate-800 dark:text-white bg-white/50 dark:bg-slate-700/50 px-3 py-1 rounded-lg border border-white/50 dark:border-white/10">₴</span>
-                     </div>
                  </div>
 
                  <div className="pt-4 text-center space-y-4">
