@@ -70,19 +70,19 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
 const NavigationButtons: React.FC<{ onBack: () => void, onNext: () => void, t: Translation }> = ({ onBack, onNext, t }) => {
   return (
     <div className="grid grid-cols-2 gap-3 mt-auto">
-       <button 
-        onClick={onNext}
-        className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
-      >
-        {t.common.next}
-        <ArrowDown size={18} />
-      </button>
       <button 
         onClick={onBack}
         className="w-full py-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/40 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-slate-700/60 border border-white/30 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-2 text-sm font-medium active:scale-95 shadow-sm"
       >
         <ChevronLeft size={18} />
         {t.common.back}
+      </button>
+       <button 
+        onClick={onNext}
+        className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+      >
+        {t.common.next}
+        <ArrowDown size={18} />
       </button>
     </div>
   )
@@ -141,7 +141,7 @@ const BackButton: React.FC<{ onClick: () => void, label: string }> = ({ onClick,
 
 const ResultCard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
-        <div className="rounded-2xl border border-white/50 dark:border-white/10 shadow-lg transition-all duration-300 overflow-hidden shrink-0 backdrop-blur-xl bg-white/80 dark:bg-slate-800/50 p-5">
+        <div className="rounded-2xl border border-white/50 dark:border-white/10 shadow-lg transition-all duration-300 overflow-hidden shrink-0 backdrop-blur-xl bg-white/80 dark:bg-slate-800/50 p-4">
             <div className="flex flex-col animate-in fade-in">
                 {children}
             </div>
@@ -170,15 +170,15 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.discountCalc.title}</h2>
         
         <ResultCard>
-            <div className="flex flex-col items-center pt-2 pb-1">
-                <div className="flex items-center gap-2 mb-1 opacity-80">
+            <div className="flex flex-col items-center pt-1 pb-0.5">
+                <div className="flex items-center gap-2 mb-0.5 opacity-80">
                      <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">{t.reverseCalc.regularPrice}</span>
-                     <span className="text-lg font-medium text-slate-400 line-through decoration-red-500/60 decoration-2">
+                     <span className="text-base font-medium text-slate-400 line-through decoration-red-500/60 decoration-2">
                         {numPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
                      </span>
                 </div>
 
-                <span className="text-5xl font-bold text-green-500 dark:text-green-400 tracking-tight leading-none mb-1 drop-shadow-sm">
+                <span className="text-4xl font-bold text-green-500 dark:text-green-400 tracking-tight leading-none mb-0.5 drop-shadow-sm">
                     {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{currency}</span>
                 </span>
                 <span className="text-slate-500 uppercase font-bold tracking-wider opacity-60 text-[10px]">
@@ -186,7 +186,7 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
                 </span>
             </div>
             
-            <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 mb-3 mt-4"></div>
+            <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 my-2"></div>
 
             <div className="flex justify-between items-center text-sm px-1">
                 <span className="text-slate-500 dark:text-slate-400 font-medium">{t.common.save}</span>
@@ -248,25 +248,25 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.marginCalc.title}</h2>
          
          <ResultCard>
-            <div className="flex flex-col items-center mb-2">
-                <span className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-1 uppercase tracking-wide">{t.marginCalc.profit}</span>
+            <div className="flex flex-col items-center pt-1 pb-0.5">
+                <span className="text-slate-500 dark:text-slate-400 text-[10px] font-bold mb-0.5 uppercase tracking-wider">{t.marginCalc.profit}</span>
                 <span className={`text-4xl font-bold leading-none drop-shadow-sm ${isProfitable ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                     {profit > 0 ? '+' : ''}{profit.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-xl">{currency}</span>
                 </span>
             </div>
             
-            <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 mb-3 mt-1"></div>
+            <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 my-2"></div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
                  <div className="flex flex-col items-center">
-                    <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">{t.marginCalc.markup}</span>
-                    <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-lg border border-indigo-200/50 dark:border-indigo-500/20 font-bold">
+                    <span className="text-slate-500 dark:text-slate-400 text-[10px] mb-0.5">{t.marginCalc.markup}</span>
+                    <div className="bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2 py-0.5 rounded border border-indigo-200/50 dark:border-indigo-500/20 font-bold text-sm">
                         {markup.toFixed(1)}%
                     </div>
                  </div>
                  <div className="flex flex-col items-center">
-                    <span className="text-slate-500 dark:text-slate-400 text-xs mb-1">{t.marginCalc.margin}</span>
-                    <div className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 px-3 py-1 rounded-lg border border-blue-200/50 dark:border-blue-500/20 font-bold">
+                    <span className="text-slate-500 dark:text-slate-400 text-[10px] mb-0.5">{t.marginCalc.margin}</span>
+                    <div className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded border border-blue-200/50 dark:border-blue-500/20 font-bold text-sm">
                         {margin.toFixed(1)}%
                     </div>
                  </div>
@@ -410,15 +410,15 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
             </div>
           
           <ResultCard>
-             <div className="flex flex-col items-center py-2">
-                 <div className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-1 flex items-center gap-1 bg-slate-100/50 dark:bg-slate-900/40 px-3 py-1 rounded-full border border-slate-200 dark:border-white/10">
+             <div className="flex flex-col items-center pt-1 pb-0.5">
+                 <div className="text-slate-500 dark:text-slate-400 text-[10px] font-medium mb-0.5 flex items-center gap-1 bg-slate-100/50 dark:bg-slate-900/40 px-2 py-0.5 rounded-full border border-slate-200 dark:border-white/10">
                     {title}
                  </div>
-                 <span className="text-4xl font-bold text-emerald-500 dark:text-emerald-400 tracking-tight leading-none mt-2 drop-shadow-sm">
+                 <span className="text-4xl font-bold text-emerald-500 dark:text-emerald-400 tracking-tight leading-none mt-0.5 drop-shadow-sm">
                      {result.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{toSymbol}</span>
                  </span>
              </div>
-             <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 mb-2 mt-3"></div>
+             <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 my-2"></div>
              <div className="flex justify-between items-center text-xs text-slate-500">
                 <span>{t.currencyCalc.rateLabel}</span>
                 <div className="text-right">
