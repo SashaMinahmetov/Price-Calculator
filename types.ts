@@ -2,6 +2,7 @@ import React from 'react';
 
 export type Language = 'ru' | 'uk' | 'en';
 export type Theme = 'light' | 'dark';
+export type DeviceMode = 'mobile' | 'tablet' | 'desktop';
 
 export enum AppView {
   MAIN_MENU = 'MAIN_MENU',
@@ -18,6 +19,7 @@ export interface SettingsState {
   currency: string;
   language: Language;
   theme: Theme;
+  deviceMode: DeviceMode;
 }
 
 // Telegram Web App Types

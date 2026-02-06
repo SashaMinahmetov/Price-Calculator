@@ -1,19 +1,15 @@
 import React from 'react';
-import { Delete, ArrowDown } from 'lucide-react';
+import { Delete } from 'lucide-react';
 
 interface NumericKeypadProps {
   onKeyPress: (key: string) => void;
   onDelete: () => void;
-  onClear?: () => void;
-  onNext?: () => void;
-  nextLabel?: string;
+  // onNext and nextLabel removed as they are now handled externally
 }
 
 export const NumericKeypad: React.FC<NumericKeypadProps> = ({ 
   onKeyPress, 
-  onDelete, 
-  onNext, 
-  nextLabel = "Next" 
+  onDelete
 }) => {
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0'];
 
@@ -44,16 +40,6 @@ export const NumericKeypad: React.FC<NumericKeypadProps> = ({
           <Delete size={24} />
         </button>
       </div>
-
-      {onNext && (
-        <button 
-          onClick={onNext}
-          className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
-        >
-          {nextLabel}
-          <ArrowDown size={18} />
-        </button>
-      )}
     </div>
   );
 };

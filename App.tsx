@@ -13,10 +13,13 @@ import {
   Moon,
   Sun,
   TrendingUp,
-  Calculator,
-  ShoppingCart
+  ArrowDown,
+  Monitor,
+  Smartphone,
+  Tablet,
+  ChevronLeft
 } from 'lucide-react';
-import { AppView, SettingsState, Language, TelegramUser, Theme } from './types';
+import { AppView, SettingsState, Language, TelegramUser, Theme, DeviceMode } from './types';
 import { Input } from './components/Input';
 import { NumericKeypad } from './components/NumericKeypad';
 import { translations, Translation } from './translations';
@@ -66,6 +69,27 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
 };
 
 // --- View Components ---
+
+const NavigationButtons: React.FC<{ onBack: () => void, onNext: () => void, t: Translation }> = ({ onBack, onNext, t }) => {
+  return (
+    <div className="grid grid-cols-2 gap-3 mt-auto">
+       <button 
+        onClick={onNext}
+        className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+      >
+        {t.common.next}
+        <ArrowDown size={18} />
+      </button>
+      <button 
+        onClick={onBack}
+        className="w-full py-3.5 rounded-2xl bg-white/50 dark:bg-slate-800/40 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-slate-700/60 border border-white/30 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-2 text-sm font-medium active:scale-95 shadow-sm"
+      >
+        <ChevronLeft size={18} />
+        {t.common.back}
+      </button>
+    </div>
+  )
+}
 
 const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation, user?: TelegramUser }> = ({ onViewSelect, t, user }) => {
   const menuItems = [
@@ -133,7 +157,12 @@ const ResultCard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     )
 }
 
-const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
+const getLayoutClass = (mode: DeviceMode) => {
+    if (mode === 'mobile') return "flex flex-col h-full gap-3";
+    return "grid grid-cols-2 gap-6 h-full items-start";
+};
+
+const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', discount: '' }, 
     'price',
@@ -147,13 +176,12 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
   const saved = numPrice - finalPrice;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-3 w-full">
+    <div className={getLayoutClass(mode)}>
+      <div className="flex flex-col gap-3 w-full col-span-1">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.discountCalc.title}</h2>
         
         <ResultCard>
             <div className="flex flex-col items-center pt-2 pb-1">
-                {/* Regular Price (Strikethrough) */}
                 <div className="flex items-center gap-2 mb-1 opacity-80">
                      <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">{t.reverseCalc.regularPrice}</span>
                      <span className="text-lg font-medium text-slate-400 line-through decoration-red-500/60 decoration-2">
@@ -161,7 +189,6 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
                      </span>
                 </div>
 
-                {/* Final Price */}
                 <span className="text-5xl font-bold text-green-500 dark:text-green-400 tracking-tight leading-none mb-1 drop-shadow-sm">
                     {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{currency}</span>
                 </span>
@@ -179,8 +206,9 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
                 </span>
             </div>
         </ResultCard>
+      </div>
 
-        {/* Inputs */}
+      <div className="flex flex-col gap-3 w-full col-span-1">
         <div className="grid grid-cols-2 gap-3">
              <Input 
                 label={t.discountCalc.priceLabel}
@@ -203,14 +231,14 @@ const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => v
             />
         </div>
         
-        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
-        <BackButton onClick={onBack} label={t.common.back} />
+        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+        <NavigationButtons onBack={onBack} onNext={handleNext} t={t} />
       </div>
     </div>
   );
 };
 
-const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
+const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { cost: '', sell: '' }, 
     'cost',
@@ -221,16 +249,13 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
   const sell = parseFloat(values.sell) || 0;
 
   const profit = sell - cost;
-  // Markup = (Profit / Cost) * 100
   const markup = cost > 0 ? (profit / cost) * 100 : 0;
-  // Margin = (Profit / Sell) * 100
   const margin = sell > 0 ? (profit / sell) * 100 : 0;
-
   const isProfitable = profit >= 0;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-3 w-full">
+    <div className={getLayoutClass(mode)}>
+      <div className="flex flex-col gap-3 w-full col-span-1">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.marginCalc.title}</h2>
          
          <ResultCard>
@@ -258,7 +283,9 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
                  </div>
             </div>
          </ResultCard>
+      </div>
 
+      <div className="flex flex-col gap-3 w-full col-span-1">
          <Input 
             label={t.marginCalc.costLabel}
             value={values.cost}
@@ -275,8 +302,8 @@ const MarginCalc: React.FC<{ currency: string, t: Translation, onBack: () => voi
             suffix={currency}
           />
           
-          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
-          <BackButton onClick={onBack} label={t.common.back} />
+          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+          <NavigationButtons onBack={onBack} onNext={handleNext} t={t} />
       </div>
     </div>
   );
@@ -289,14 +316,12 @@ const CURRENCIES = [
   { code: 'PLN', symbol: 'zł', name: 'PLN' }
 ];
 
-const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBack }) => {
-    // State to toggle direction: 'FOREIGN_TO_UAH' (default) or 'UAH_TO_FOREIGN'
+const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void, mode: DeviceMode }> = ({ t, onBack, mode }) => {
     const [direction, setDirection] = useState<'FOREIGN_TO_UAH' | 'UAH_TO_FOREIGN'>('FOREIGN_TO_UAH');
     const [selectedCurrency, setSelectedCurrency] = useState('USD');
     const [loading, setLoading] = useState(false);
     const [rateDate, setRateDate] = useState<string>('');
     
-    // We store rate as a string in inputs for editing, but logic uses float
     const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext, setValues } = useCalculatorInput(
       { amount: '', rate: '0.00' }, 
       'amount',
@@ -370,8 +395,8 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
     }
   
     return (
-      <div className="flex flex-col h-full">
-        <div className="flex flex-col gap-3 w-full">
+      <div className={getLayoutClass(mode)}>
+        <div className="flex flex-col gap-3 w-full col-span-1">
             <div className="flex justify-between items-center px-2">
                  <h2 className="text-xl font-bold text-slate-800 dark:text-white/90">{t.currencyCalc.title}</h2>
                  <button onClick={handleRefresh} className={`p-2 rounded-full hover:bg-white/50 dark:hover:bg-slate-700/50 backdrop-blur-sm transition-colors ${loading ? 'animate-spin text-blue-500' : 'text-slate-400'}`}>
@@ -413,7 +438,9 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
                 </div>
              </div>
           </ResultCard>
+        </div>
   
+        <div className="flex flex-col gap-3 w-full col-span-1">
           <div className="flex gap-2 items-end mt-1">
             <div className="flex-1">
                 <Input 
@@ -441,18 +468,16 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
             suffix="UAH"
           />
           
-          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
-          <BackButton onClick={onBack} label={t.common.back} />
+          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+          <NavigationButtons onBack={onBack} onNext={handleNext} t={t} />
         </div>
       </div>
     );
 };
 
-const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const [mode, setMode] = useState<'STANDARD' | 'REVERSE'>('STANDARD');
+const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
+  const [modeCalc, setModeCalc] = useState<'STANDARD' | 'REVERSE'>('STANDARD');
   
-  // Safe string access to prevent crash
-  // Fallback to English/Generic values if translation is missing for any reason
   const strings = t.promoCalc || {
       title: "Promo N+X",
       modeStandard: "Price per Item",
@@ -476,11 +501,10 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
     ['price', 'n', 'x']
   );
 
-  // Custom handleNext to support dynamic fields based on mode
   const handleNext = () => {
       const standardFields = ['price', 'n', 'x'];
       const reverseFields = ['target', 'n', 'x', 'price'];
-      const currentFields = mode === 'STANDARD' ? standardFields : reverseFields;
+      const currentFields = modeCalc === 'STANDARD' ? standardFields : reverseFields;
       
       const currentIndex = currentFields.indexOf(activeField);
       const nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % currentFields.length;
@@ -492,13 +516,11 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
   const x = parseFloat(values.x) || 0; // Free
   const target = parseFloat(values.target) || 0; // Desired Total
 
-  // Standard Mode Calculations
   const totalQuantity = n + x;
   const totalPrice = price * n;
   const unitPrice = totalQuantity > 0 ? (price * n) / totalQuantity : 0;
   const realDiscount = totalQuantity > 0 ? (x / totalQuantity) * 100 : 0;
 
-  // Reverse Mode Calculations
   const setSize = n + x;
   const sets = setSize > 0 ? target / setSize : 0;
   const invoiceQty = sets * n;
@@ -506,22 +528,21 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
   const totalInvoiceCost = invoiceQty * price;
 
   const toggleMode = (newMode: 'STANDARD' | 'REVERSE') => {
-      setMode(newMode);
+      setModeCalc(newMode);
       if (newMode === 'STANDARD') setActiveField('price');
       else setActiveField('target');
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-3 w-full">
+    <div className={getLayoutClass(mode)}>
+      <div className="flex flex-col gap-3 w-full col-span-1">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{strings.title}</h2>
         
-        {/* Mode Switcher */}
         <div className="grid grid-cols-2 gap-1 p-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md rounded-xl border border-white/30 dark:border-white/5 mb-1">
              <button
                 onClick={() => toggleMode('STANDARD')}
                 className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
-                    mode === 'STANDARD' 
+                    modeCalc === 'STANDARD' 
                     ? 'bg-purple-600 text-white shadow-md' 
                     : 'text-slate-500 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30'
                 }`}
@@ -532,7 +553,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
              <button
                 onClick={() => toggleMode('REVERSE')}
                 className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
-                    mode === 'REVERSE' 
+                    modeCalc === 'REVERSE' 
                     ? 'bg-purple-600 text-white shadow-md' 
                     : 'text-slate-500 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30'
                 }`}
@@ -544,7 +565,7 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
         
         <ResultCard>
              <div className="flex flex-col animate-in fade-in">
-                 {mode === 'STANDARD' ? (
+                 {modeCalc === 'STANDARD' ? (
                      <>
                         <div className="flex justify-between items-center mb-3">
                             <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{strings.pricePerItem}</span>
@@ -595,8 +616,10 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
                  )}
             </div>
         </ResultCard>
+      </div>
 
-        {mode === 'STANDARD' ? (
+      <div className="flex flex-col gap-3 w-full col-span-1">
+        {modeCalc === 'STANDARD' ? (
             <>
                 <Input 
                     label={strings.priceLabel}
@@ -656,14 +679,14 @@ const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void
             </>
         )}
 
-        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
-        <BackButton onClick={onBack} label={t.common.back} />
+        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+        <NavigationButtons onBack={onBack} onNext={handleNext} t={t} />
       </div>
     </div>
   );
 };
 
-const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
+const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', weight: '' }, 
     'price',
@@ -703,8 +726,8 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
   const pricePerSmallUnit = pricePerUnit / 10;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-3 w-full">
+    <div className={getLayoutClass(mode)}>
+      <div className="flex flex-col gap-3 w-full col-span-1">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.unitPriceCalc.title}</h2>
          
          <ResultCard>
@@ -724,7 +747,9 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
                 </span>
             </div>
          </ResultCard>
+      </div>
 
+      <div className="flex flex-col gap-3 w-full col-span-1">
          <Input 
             label={t.unitPriceCalc.priceLabel}
             value={values.price}
@@ -757,14 +782,14 @@ const UnitPriceCalc: React.FC<{ currency: string, t: Translation, onBack: () => 
           </div>
         </div>
 
-        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
-        <BackButton onClick={onBack} label={t.common.back} />
+        <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+        <NavigationButtons onBack={onBack} onNext={handleNext} t={t} />
       </div>
     </div>
   );
 };
 
-const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
+const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => void, mode: DeviceMode }> = ({ currency, t, onBack, mode }) => {
   const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
     { price: '', percent: '' }, 
     'price',
@@ -774,13 +799,11 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
   const p = parseFloat(values.price) || 0;
   const d = parseFloat(values.percent) || 0;
 
-  // Modified logic: if discount is 0 or empty, the original price is the same as the current price (p)
-  // This prevents division by 1 when d=0 from looking like an empty state if we were hiding it before.
   const original = (d >= 0 && d < 100) ? p / (1 - (d/100)) : 0;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex flex-col gap-3 w-full">
+    <div className={getLayoutClass(mode)}>
+      <div className="flex flex-col gap-3 w-full col-span-1">
          <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.reverseCalc.title}</h2>
          <div className="bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-sm p-2 rounded-xl text-xs text-blue-600 dark:text-blue-200 border border-blue-200/50 dark:border-blue-900/50 text-center">
            {t.reverseCalc.info}
@@ -803,7 +826,9 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
                 </span>
             </div>
          </ResultCard>
+      </div>
 
+      <div className="flex flex-col gap-3 w-full col-span-1">
          <Input 
             label={t.reverseCalc.discountedPrice}
             value={values.price}
@@ -820,8 +845,8 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
             suffix="%"
           />
           
-          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
-          <BackButton onClick={onBack} label={t.common.back} />
+          <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
+          <NavigationButtons onBack={onBack} onNext={handleNext} t={t} />
       </div>
     </div>
   );
@@ -834,14 +859,13 @@ const App: React.FC = () => {
   const [user, setUser] = useState<TelegramUser | undefined>(undefined);
   const [settings, setSettings] = useState<SettingsState>({ 
     currency: '₴', 
-    language: 'uk', // Default to Ukrainian as per request context, will auto-detect below
-    theme: 'dark'
+    language: 'uk', 
+    theme: 'dark',
+    deviceMode: 'mobile' // Default to mobile
   });
-  // Ref to ensure we don't log multiple times in one session if component re-renders
   const hasLoggedRef = useRef(false);
 
   useEffect(() => {
-    // Initialize Telegram Web App
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
@@ -850,13 +874,11 @@ const App: React.FC = () => {
       if (telegramUser) {
         setUser(telegramUser);
         
-        // Try to log the user visit if not already done
         if (!hasLoggedRef.current) {
             logUserVisit(telegramUser);
             hasLoggedRef.current = true;
         }
 
-        // Auto-detect language if available and matches our supported languages
         if (telegramUser.language_code && ['ru', 'uk', 'en'].includes(telegramUser.language_code)) {
           setSettings(prev => ({ ...prev, language: telegramUser.language_code as Language }));
         }
@@ -864,19 +886,17 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Sync theme with document class for Tailwind
   useEffect(() => {
     if (settings.theme === 'dark') {
       document.documentElement.classList.add('dark');
-      // Also update Telegram header color if possible
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.setHeaderColor?.('#0f172a'); // slate-900 (matches dark theme bg)
+        window.Telegram.WebApp.setHeaderColor?.('#0f172a'); 
         window.Telegram.WebApp.setBackgroundColor?.('#0f172a');
       }
     } else {
       document.documentElement.classList.remove('dark');
       if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.setHeaderColor?.('#f1f5f9'); // slate-100 (matches light theme bg top)
+        window.Telegram.WebApp.setHeaderColor?.('#f1f5f9'); 
         window.Telegram.WebApp.setBackgroundColor?.('#f1f5f9');
       }
     }
@@ -886,39 +906,46 @@ const App: React.FC = () => {
 
   const handleBack = () => setCurrentView(AppView.MAIN_MENU);
 
+  // Dynamic max-width based on device mode
+  const getContainerMaxWidth = () => {
+      switch(settings.deviceMode) {
+          case 'tablet': return 'max-w-3xl';
+          case 'desktop': return 'max-w-5xl';
+          default: return 'max-w-md';
+      }
+  };
+
   return (
-    // Updated background with a subtle gradient for both modes
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-blue-50 dark:from-slate-900 dark:to-slate-950 text-slate-900 dark:text-slate-100 flex justify-center selection:bg-blue-500/30 transition-colors duration-500">
-      <div className="w-full max-w-md flex flex-col h-[100dvh]">
+      <div className={`w-full ${getContainerMaxWidth()} flex flex-col h-[100dvh] transition-all duration-300`}>
         
-        {/* Content Area */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 scroll-smooth flex flex-col">
           {currentView === AppView.MAIN_MENU && (
             <MainMenu onViewSelect={setCurrentView} t={t} user={user} />
           )}
 
           {currentView === AppView.DISCOUNT_CALC && (
-            <DiscountCalc currency={settings.currency} t={t} onBack={handleBack} />
+            <DiscountCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
           )}
 
           {currentView === AppView.CURRENCY_CONVERTER && (
-            <CurrencyConverter t={t} onBack={handleBack} />
+            <CurrencyConverter t={t} onBack={handleBack} mode={settings.deviceMode} />
           )}
 
           {currentView === AppView.PROMO_CALC && (
-             <PromoCalc currency={settings.currency} t={t} onBack={handleBack} />
+             <PromoCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
           )}
 
           {currentView === AppView.UNIT_PRICE_CALC && (
-             <UnitPriceCalc currency={settings.currency} t={t} onBack={handleBack} />
+             <UnitPriceCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
           )}
 
           {currentView === AppView.REVERSE_CALC && (
-             <ReverseCalc currency={settings.currency} t={t} onBack={handleBack} />
+             <ReverseCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
           )}
           
           {currentView === AppView.MARGIN_CALC && (
-             <MarginCalc currency={settings.currency} t={t} onBack={handleBack} />
+             <MarginCalc currency={settings.currency} t={t} onBack={handleBack} mode={settings.deviceMode} />
           )}
 
           {currentView === AppView.SETTINGS && (
@@ -969,6 +996,31 @@ const App: React.FC = () => {
                         >
                           {themeOpt.icon}
                           {themeOpt.label}
+                        </button>
+                      ))}
+                    </div>
+                 </div>
+
+                 {/* Device Mode Settings */}
+                 <div>
+                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{t.common.device}</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { code: 'mobile', label: t.common.mobile, icon: <Smartphone size={18} /> },
+                        { code: 'tablet', label: t.common.tablet, icon: <Tablet size={18} /> },
+                        { code: 'desktop', label: t.common.desktop, icon: <Monitor size={18} /> }
+                      ].map(deviceOpt => (
+                        <button
+                          key={deviceOpt.code}
+                          onClick={() => setSettings(s => ({ ...s, deviceMode: deviceOpt.code as DeviceMode }))}
+                          className={`p-3 rounded-xl border font-medium transition-all active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm text-xs ${
+                            settings.deviceMode === deviceOpt.code 
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-blue-900/30' 
+                            : 'bg-white/60 dark:bg-slate-800/40 border-white/40 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/80 dark:hover:bg-slate-700/50 backdrop-blur-sm'
+                          }`}
+                        >
+                          {deviceOpt.icon}
+                          {deviceOpt.label}
                         </button>
                       ))}
                     </div>
