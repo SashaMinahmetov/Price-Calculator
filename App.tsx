@@ -12,7 +12,9 @@ import {
   RefreshCcw,
   Moon,
   Sun,
-  TrendingUp
+  TrendingUp,
+  Calculator,
+  ShoppingCart
 } from 'lucide-react';
 import { AppView, SettingsState, Language, TelegramUser, Theme } from './types';
 import { Input } from './components/Input';
@@ -27,7 +29,7 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
 
   const handleKeyPress = (key: string) => {
     setValues(prev => {
-      const currentVal = prev[activeField];
+      const currentVal = prev[activeField] || '';
       // Prevent multiple dots
       if (key === '.' && currentVal.includes('.')) return prev;
       // Prevent excessive length
@@ -43,7 +45,7 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
   const handleDelete = () => {
     setValues(prev => ({
       ...prev,
-      [activeField]: prev[activeField].slice(0, -1)
+      [activeField]: prev[activeField]?.slice(0, -1) || ''
     }));
   };
 
@@ -304,22 +306,18 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
     const performFetch = async (currencyCode: string) => {
         setLoading(true);
         try {
-            // Get today's date in YYYYMMDD format to force NBU to return today's rate
             const date = new Date();
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             const dateParam = `${year}${month}${day}`;
 
-            // Try to fetch specifically for today to avoid getting "next banking day" rates if NBU served them early
             let response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${currencyCode}&date=${dateParam}&json`);
-            
             let data;
             if (response.ok) {
                 data = await response.json();
             }
 
-            // Fallback to default endpoint if specific date returns empty (e.g. edge cases)
             if (!data || data.length === 0) {
                  response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${currencyCode}&json`);
                  if (response.ok) {
@@ -338,7 +336,6 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
         }
     };
   
-    // Fetch when currency changes
     useEffect(() => {
         performFetch(selectedCurrency);
     }, [selectedCurrency]);
@@ -382,7 +379,6 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
                  </button>
             </div>
 
-            {/* Currency Selector */}
             <div className="grid grid-cols-3 gap-2 px-1">
                 {CURRENCIES.map(curr => (
                     <button
@@ -453,74 +449,211 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
 };
 
 const PromoCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
-    { price: '', n: '', x: '' }, 
+  const [mode, setMode] = useState<'STANDARD' | 'REVERSE'>('STANDARD');
+  
+  // Safe string access to prevent crash
+  const strings = t.promoCalc || {
+      title: "Акция N+X",
+      modeStandard: "Цена за шт",
+      modeReverse: "Расчет заказа",
+      priceLabel: "Цена (база)",
+      buyLabel: "Купи (N)",
+      freeLabel: "Бонус (X)",
+      targetLabel: "Нужно всего",
+      pricePerItem: "Цена за 1 шт по акции",
+      realDiscount: "Фактическая скидка",
+      totalCost: "Общая сумма",
+      toInvoice: "Выписать (Оплатить)",
+      toAdd: "Получите бонусом",
+      item: "шт",
+      emptyState: "Введите цену и условия (N+X)"
+  };
+
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext: originalHandleNext } = useCalculatorInput(
+    { price: '', n: '', x: '', target: '' }, 
     'price',
     ['price', 'n', 'x']
   );
 
+  // Custom handleNext to support dynamic fields based on mode
+  const handleNext = () => {
+      const standardFields = ['price', 'n', 'x'];
+      const reverseFields = ['target', 'n', 'x', 'price'];
+      const currentFields = mode === 'STANDARD' ? standardFields : reverseFields;
+      
+      const currentIndex = currentFields.indexOf(activeField);
+      const nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % currentFields.length;
+      setActiveField(currentFields[nextIndex]);
+  };
+
   const price = parseFloat(values.price) || 0;
   const n = parseFloat(values.n) || 0; // Buy
   const x = parseFloat(values.x) || 0; // Free
+  const target = parseFloat(values.target) || 0; // Desired Total
 
+  // Standard Mode Calculations
   const totalQuantity = n + x;
   const totalPrice = price * n;
-  
   const unitPrice = totalQuantity > 0 ? (price * n) / totalQuantity : 0;
   const realDiscount = totalQuantity > 0 ? (x / totalQuantity) * 100 : 0;
+
+  // Reverse Mode Calculations
+  const setSize = n + x;
+  const sets = setSize > 0 ? target / setSize : 0;
+  const invoiceQty = sets * n;
+  const freeQty = sets * x;
+  const totalInvoiceCost = invoiceQty * price;
+
+  const toggleMode = (newMode: 'STANDARD' | 'REVERSE') => {
+      setMode(newMode);
+      if (newMode === 'STANDARD') setActiveField('price');
+      else setActiveField('target');
+  };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col gap-3 w-full">
-        <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{t.promoCalc.title}</h2>
+        <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90 mb-1">{strings.title}</h2>
+        
+        {/* Mode Switcher */}
+        <div className="grid grid-cols-2 gap-1 p-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md rounded-xl border border-white/30 dark:border-white/5 mb-1">
+             <button
+                onClick={() => toggleMode('STANDARD')}
+                className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                    mode === 'STANDARD' 
+                    ? 'bg-purple-600 text-white shadow-md' 
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30'
+                }`}
+             >
+                <Percent size={14} />
+                {strings.modeStandard}
+             </button>
+             <button
+                onClick={() => toggleMode('REVERSE')}
+                className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                    mode === 'REVERSE' 
+                    ? 'bg-purple-600 text-white shadow-md' 
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30'
+                }`}
+             >
+                <Package size={14} />
+                {strings.modeReverse}
+             </button>
+        </div>
         
         <ResultCard>
              <div className="flex flex-col animate-in fade-in">
-                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{t.promoCalc.pricePerItem}</span>
-                    <span className="text-3xl font-bold text-slate-800 dark:text-white leading-none drop-shadow-sm">
-                        {unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-base text-slate-400">{currency}</span>
-                    </span>
-                </div>
-                
-                <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 mb-3"></div>
+                 {mode === 'STANDARD' ? (
+                     <>
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{strings.pricePerItem}</span>
+                            <span className="text-3xl font-bold text-slate-800 dark:text-white leading-none drop-shadow-sm">
+                                {unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-base text-slate-400">{currency}</span>
+                            </span>
+                        </div>
+                        
+                        <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 mb-3"></div>
 
-                <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-slate-500 dark:text-slate-400">{t.promoCalc.realDiscount}</span>
-                    <span className="font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-100/50 dark:bg-yellow-400/10 px-2 py-0.5 rounded border border-yellow-200/50 dark:border-yellow-400/20">
-                        {realDiscount.toFixed(1)}%
-                    </span>
-                </div>
-                <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
-                     <span>{t.promoCalc.totalCost} ({n + x} {t.promoCalc.item})</span>
-                     <span>{totalPrice.toLocaleString()} {currency}</span>
-                </div>
+                        <div className="flex justify-between items-center text-sm mb-1">
+                            <span className="text-slate-500 dark:text-slate-400">{strings.realDiscount}</span>
+                            <span className="font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-100/50 dark:bg-yellow-400/10 px-2 py-0.5 rounded border border-yellow-200/50 dark:border-yellow-400/20">
+                                {realDiscount.toFixed(1)}%
+                            </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                            <span>{strings.totalCost} ({n + x} {strings.item})</span>
+                            <span>{totalPrice.toLocaleString()} {currency}</span>
+                        </div>
+                     </>
+                 ) : (
+                     <>
+                        <div className="flex justify-between items-center mb-1">
+                             <div className="flex flex-col">
+                                <span className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wide">{strings.toInvoice}</span>
+                                <span className="text-3xl font-bold text-purple-600 dark:text-purple-400 leading-tight">
+                                    {Number.isInteger(invoiceQty) ? invoiceQty : invoiceQty.toFixed(2)}
+                                </span>
+                             </div>
+                             <div className="flex flex-col items-end">
+                                <span className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wide">{strings.toAdd}</span>
+                                <span className="text-3xl font-bold text-green-500 dark:text-green-400 leading-tight">
+                                    {Number.isInteger(freeQty) ? freeQty : freeQty.toFixed(2)}
+                                </span>
+                             </div>
+                        </div>
+
+                        <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 mb-3 mt-2"></div>
+
+                        <div className="flex justify-between items-center text-xs text-slate-500">
+                             <span>{strings.totalCost}</span>
+                             <span className="font-semibold text-slate-700 dark:text-slate-300 text-sm">
+                                {totalInvoiceCost > 0 ? `${totalInvoiceCost.toLocaleString()} ${currency}` : '-'}
+                             </span>
+                        </div>
+                     </>
+                 )}
             </div>
         </ResultCard>
 
-        <Input 
-          label={t.promoCalc.priceLabel}
-          value={values.price}
-          isActive={activeField === 'price'}
-          onInputClick={() => setActiveField('price')}
-          suffix={currency}
-          className="mt-2"
-        />
-        
-        <div className="grid grid-cols-2 gap-4">
-          <Input 
-            label={t.promoCalc.buyLabel}
-            value={values.n}
-            isActive={activeField === 'n'}
-            onInputClick={() => setActiveField('n')}
-          />
-          <Input 
-            label={t.promoCalc.freeLabel}
-            value={values.x}
-            isActive={activeField === 'x'}
-            onInputClick={() => setActiveField('x')}
-          />
-        </div>
+        {mode === 'STANDARD' ? (
+            <>
+                <Input 
+                    label={strings.priceLabel}
+                    value={values.price}
+                    isActive={activeField === 'price'}
+                    onInputClick={() => setActiveField('price')}
+                    suffix={currency}
+                    className="mt-2"
+                />
+                
+                <div className="grid grid-cols-2 gap-4">
+                    <Input 
+                        label={strings.buyLabel}
+                        value={values.n}
+                        isActive={activeField === 'n'}
+                        onInputClick={() => setActiveField('n')}
+                    />
+                    <Input 
+                        label={strings.freeLabel}
+                        value={values.x}
+                        isActive={activeField === 'x'}
+                        onInputClick={() => setActiveField('x')}
+                    />
+                </div>
+            </>
+        ) : (
+            <>
+                 <Input 
+                    label={strings.targetLabel}
+                    value={values.target}
+                    isActive={activeField === 'target'}
+                    onInputClick={() => setActiveField('target')}
+                    className="mt-2"
+                    autoFocus
+                />
+                <div className="grid grid-cols-2 gap-4">
+                    <Input 
+                        label={strings.buyLabel}
+                        value={values.n}
+                        isActive={activeField === 'n'}
+                        onInputClick={() => setActiveField('n')}
+                    />
+                    <Input 
+                        label={strings.freeLabel}
+                        value={values.x}
+                        isActive={activeField === 'x'}
+                        onInputClick={() => setActiveField('x')}
+                    />
+                </div>
+                <Input 
+                    label={`${strings.priceLabel} (${t.common.currency})`}
+                    value={values.price}
+                    isActive={activeField === 'price'}
+                    onInputClick={() => setActiveField('price')}
+                    suffix={currency}
+                />
+            </>
+        )}
 
         <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} onNext={handleNext} nextLabel={t.common.next} />
         <BackButton onClick={onBack} label={t.common.back} />
