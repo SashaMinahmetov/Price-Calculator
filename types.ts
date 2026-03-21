@@ -14,6 +14,7 @@ export enum AppView {
   CLASSIC_CALC = 'CLASSIC_CALC',
   HISTORY = 'HISTORY',
   SETTINGS = 'SETTINGS',
+  ADMIN_PANEL = 'ADMIN_PANEL',
 }
 
 export interface SettingsState {
@@ -41,6 +42,7 @@ export interface TelegramWebApp {
   platform: string;
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
+  showAlert?: (message: string) => void;
   MainButton: {
     text: string;
     color: string;

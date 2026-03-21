@@ -20,6 +20,7 @@ import {
 import { AppView, SettingsState, Language, TelegramUser, Theme } from './types';
 import { Input } from './components/Input';
 import { NumericKeypad } from './components/NumericKeypad';
+import { AdminPanel } from './components/AdminPanel';
 import { translations, Translation } from './translations';
 import { logUserVisit } from './services/analytics';
 
@@ -117,7 +118,7 @@ const NavigationButtons: React.FC<{ onBack: () => void, onNext: () => void, t: T
   )
 }
 
-const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation, user?: TelegramUser }> = ({ onViewSelect, t, user }) => {
+const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation, user?: TelegramUser, isAdmin?: boolean }> = ({ onViewSelect, t, user, isAdmin }) => {
   const menuItems = [
     { id: AppView.DISCOUNT_CALC, title: t.mainMenu.discount, icon: <Package size={20} />, sub: t.mainMenu.discountSub, color: "text-blue-500 dark:text-blue-400" },
     { id: AppView.PROMO_CALC, title: t.mainMenu.promo, icon: <Percent size={20} />, sub: t.mainMenu.promoSub, color: "text-purple-500 dark:text-purple-400" },
@@ -128,6 +129,10 @@ const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation
     { id: AppView.CLASSIC_CALC, title: t.mainMenu.classicCalc, icon: <Calculator size={20} />, sub: t.mainMenu.classicCalcSub, color: "text-rose-500 dark:text-rose-400" },
     { id: AppView.SETTINGS, title: t.mainMenu.settings, icon: <SettingsIcon size={20} />, sub: t.mainMenu.settingsSub, color: "text-slate-500 dark:text-slate-400" },
   ];
+
+  if (isAdmin) {
+    menuItems.push({ id: AppView.ADMIN_PANEL, title: "Admin Panel", icon: <Briefcase size={20} />, sub: "Manage users and analytics", color: "text-amber-500 dark:text-amber-400" });
+  }
 
   return (
     <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
@@ -1013,6 +1018,7 @@ const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBa
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.MAIN_MENU);
   const [user, setUser] = useState<TelegramUser | undefined>(undefined);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [settings, setSettings] = useState<SettingsState>(() => {
     const saved = localStorage.getItem('appSettings');
     if (saved) {
@@ -1042,7 +1048,11 @@ const App: React.FC = () => {
         setUser(telegramUser);
         
         if (!hasLoggedRef.current) {
-            logUserVisit(telegramUser);
+            logUserVisit(telegramUser).then(role => {
+              if (role === 'admin') {
+                setIsAdmin(true);
+              }
+            });
             hasLoggedRef.current = true;
         }
 
@@ -1070,6 +1080,35 @@ const App: React.FC = () => {
     }
   }, [settings.theme]);
 
+  const [versionTapCount, setVersionTapCount] = useState(0);
+
+  const handleVersionTap = async () => {
+    if (isAdmin) return;
+    
+    const newCount = versionTapCount + 1;
+    setVersionTapCount(newCount);
+    
+    if (newCount >= 5 && user) {
+      try {
+        const { auth, db } = await import('./firebase');
+        const { doc, updateDoc } = await import('firebase/firestore');
+        if (auth.currentUser) {
+          const userRef = doc(db, 'users', auth.currentUser.uid);
+          await updateDoc(userRef, { role: 'admin' });
+          setIsAdmin(true);
+          setVersionTapCount(0);
+          if (window.Telegram?.WebApp?.showAlert) {
+            window.Telegram.WebApp.showAlert('You are now an admin!');
+          } else {
+            alert('You are now an admin!');
+          }
+        }
+      } catch (e) {
+        console.error("Failed to become admin", e);
+      }
+    }
+  };
+
   const t = translations[settings.language] || translations.uk;
 
   const handleBack = () => setCurrentView(AppView.MAIN_MENU);
@@ -1080,7 +1119,11 @@ const App: React.FC = () => {
         
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 scroll-smooth flex flex-col">
           {currentView === AppView.MAIN_MENU && (
-            <MainMenu onViewSelect={setCurrentView} t={t} user={user} />
+            <MainMenu onViewSelect={setCurrentView} t={t} user={user} isAdmin={isAdmin} />
+          )}
+
+          {currentView === AppView.ADMIN_PANEL && (
+            <AdminPanel onBack={handleBack} t={t} />
           )}
 
           {currentView === AppView.DISCOUNT_CALC && (
@@ -1165,7 +1208,10 @@ const App: React.FC = () => {
                  </div>
 
                  <div className="pt-4 text-center space-y-4">
-                    <div className="inline-block px-4 py-1 rounded-full bg-white/40 dark:bg-slate-800/40 border border-white/30 dark:border-white/5 text-xs text-slate-500 backdrop-blur-sm">
+                    <div 
+                      onClick={handleVersionTap}
+                      className="inline-block px-4 py-1 rounded-full bg-white/40 dark:bg-slate-800/40 border border-white/30 dark:border-white/5 text-xs text-slate-500 backdrop-blur-sm select-none cursor-pointer"
+                    >
                       {t.common.version}
                     </div>
                     <BackButton onClick={handleBack} label={t.common.back} />

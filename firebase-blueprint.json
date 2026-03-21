@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "UserVisit": {
+      "title": "UserVisit",
+      "description": "Records a user's visit to the app",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "telegramId": { "type": "number", "description": "Telegram User ID" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "username": { "type": "string" },
+        "languageCode": { "type": "string" },
+        "lastVisit": { "type": "string", "format": "date-time" },
+        "visitCount": { "type": "number" },
+        "role": { "type": "string", "enum": ["user", "admin"] }
+      },
+      "required": ["uid", "telegramId", "firstName", "lastVisit", "visitCount", "role"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserVisit",
+      "description": "Stores user profiles and analytics data"
+    }
+  }
+}
