@@ -1013,12 +1013,24 @@ const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBa
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.MAIN_MENU);
   const [user, setUser] = useState<TelegramUser | undefined>(undefined);
-  const [settings, setSettings] = useState<SettingsState>({ 
-    currency: '₴', 
-    language: 'uk', 
-    theme: 'dark'
+  const [settings, setSettings] = useState<SettingsState>(() => {
+    const saved = localStorage.getItem('appSettings');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return { 
+      currency: '₴', 
+      language: 'uk', 
+      theme: 'dark'
+    };
   });
   const hasLoggedRef = useRef(false);
+
+  useEffect(() => {
+    localStorage.setItem('appSettings', JSON.stringify(settings));
+  }, [settings]);
 
   useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -1034,7 +1046,8 @@ const App: React.FC = () => {
             hasLoggedRef.current = true;
         }
 
-        if (telegramUser.language_code && ['ru', 'uk', 'en'].includes(telegramUser.language_code)) {
+        const savedSettings = localStorage.getItem('appSettings');
+        if (!savedSettings && telegramUser.language_code && ['ru', 'uk', 'en'].includes(telegramUser.language_code)) {
           setSettings(prev => ({ ...prev, language: telegramUser.language_code as Language }));
         }
       }
