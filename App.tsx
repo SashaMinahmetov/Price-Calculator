@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Percent, 
   Scale, 
@@ -14,7 +14,8 @@ import {
   Sun,
   TrendingUp,
   ArrowDown,
-  ChevronLeft
+  ChevronLeft,
+  Calculator
 } from 'lucide-react';
 import { AppView, SettingsState, Language, TelegramUser, Theme } from './types';
 import { Input } from './components/Input';
@@ -27,7 +28,7 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
   const [values, setValues] = useState(initialState);
   const [activeField, setActiveField] = useState(initialActive);
 
-  const handleKeyPress = (key: string) => {
+  const handleKeyPress = useCallback((key: string) => {
     setValues(prev => {
       const currentVal = prev[activeField] || '';
       // Prevent multiple dots
@@ -40,27 +41,55 @@ const useCalculatorInput = (initialState: Record<string, string>, initialActive:
 
       return { ...prev, [activeField]: currentVal + key };
     });
-  };
+  }, [activeField]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     setValues(prev => ({
       ...prev,
       [activeField]: prev[activeField]?.slice(0, -1) || ''
     }));
-  };
+  }, [activeField]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
      setValues(prev => ({
       ...prev,
       [activeField]: ''
     }));
-  }
+  }, [activeField]);
 
-  const handleNext = () => {
-    const currentIndex = fields.indexOf(activeField);
-    const nextIndex = (currentIndex + 1) % fields.length;
-    setActiveField(fields[nextIndex]);
-  };
+  const fieldsRef = useRef(fields);
+  useEffect(() => {
+    fieldsRef.current = fields;
+  }, [fields]);
+
+  const handleNext = useCallback(() => {
+    const currentIndex = fieldsRef.current.indexOf(activeField);
+    const nextIndex = (currentIndex + 1) % fieldsRef.current.length;
+    setActiveField(fieldsRef.current[nextIndex]);
+  }, [activeField]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (e.key >= '0' && e.key <= '9') {
+        handleKeyPress(e.key);
+      } else if (e.key === '.' || e.key === ',') {
+        handleKeyPress('.');
+      } else if (e.key === 'Backspace') {
+        handleDelete();
+      } else if (e.key === 'Escape' || e.key === 'Delete') {
+        handleClear();
+      } else if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault();
+        handleNext();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyPress, handleDelete, handleClear, handleNext]);
 
   return { values, activeField, setActiveField, handleKeyPress, handleDelete, handleClear, setValues, handleNext };
 };
@@ -96,6 +125,7 @@ const MainMenu: React.FC<{ onViewSelect: (view: AppView) => void, t: Translation
     { id: AppView.REVERSE_CALC, title: t.mainMenu.reverse, icon: <Briefcase size={20} />, sub: t.mainMenu.reverseSub, color: "text-orange-500 dark:text-orange-400" },
     { id: AppView.MARGIN_CALC, title: t.mainMenu.margin, icon: <TrendingUp size={20} />, sub: t.mainMenu.marginSub, color: "text-indigo-500 dark:text-indigo-400" },
     { id: AppView.CURRENCY_CONVERTER, title: t.mainMenu.currency, icon: <DollarSign size={20} />, sub: t.mainMenu.currencySub, color: "text-emerald-500 dark:text-emerald-400" },
+    { id: AppView.CLASSIC_CALC, title: t.mainMenu.classicCalc, icon: <Calculator size={20} />, sub: t.mainMenu.classicCalcSub, color: "text-rose-500 dark:text-rose-400" },
     { id: AppView.SETTINGS, title: t.mainMenu.settings, icon: <SettingsIcon size={20} />, sub: t.mainMenu.settingsSub, color: "text-slate-500 dark:text-slate-400" },
   ];
 
@@ -838,6 +868,170 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
   );
 };
 
+const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBack }) => {
+  const [displayValue, setDisplayValue] = useState('0');
+  const [previousValue, setPreviousValue] = useState<string | null>(null);
+  const [operator, setOperator] = useState<string | null>(null);
+  const [waitingForNewValue, setWaitingForNewValue] = useState(false);
+
+  const handleNum = useCallback((numStr: string) => {
+    if (waitingForNewValue) {
+      setDisplayValue(numStr);
+      setWaitingForNewValue(false);
+    } else {
+      setDisplayValue(displayValue === '0' ? numStr : displayValue + numStr);
+    }
+  }, [displayValue, waitingForNewValue]);
+
+  const handleDot = useCallback(() => {
+    if (waitingForNewValue) {
+      setDisplayValue('0.');
+      setWaitingForNewValue(false);
+    } else if (!displayValue.includes('.')) {
+      setDisplayValue(displayValue + '.');
+    }
+  }, [displayValue, waitingForNewValue]);
+
+  const calculate = (prev: number, next: number, op: string) => {
+    if (op === '+') return prev + next;
+    if (op === '-') return prev - next;
+    if (op === '*') return prev * next;
+    if (op === '/') return prev / next;
+    return next;
+  };
+
+  const handleOp = useCallback((nextOperator: string) => {
+    if (waitingForNewValue && operator) {
+      setOperator(nextOperator);
+      return;
+    }
+
+    const inputValue = parseFloat(displayValue);
+
+    if (previousValue == null) {
+      setPreviousValue(displayValue);
+    } else if (operator) {
+      const currentValue = previousValue || 0;
+      const newValue = calculate(parseFloat(currentValue as string), inputValue, operator);
+      setDisplayValue(String(newValue));
+      setPreviousValue(String(newValue));
+    }
+
+    setWaitingForNewValue(true);
+    setOperator(nextOperator);
+  }, [displayValue, previousValue, operator, waitingForNewValue]);
+
+  const handleEqual = useCallback(() => {
+    if (!operator || previousValue == null) return;
+    const inputValue = parseFloat(displayValue);
+    const newValue = calculate(parseFloat(previousValue), inputValue, operator);
+    setDisplayValue(String(newValue));
+    setPreviousValue(null);
+    setOperator(null);
+    setWaitingForNewValue(true);
+  }, [displayValue, previousValue, operator]);
+
+  const handleClear = useCallback(() => {
+    setDisplayValue('0');
+    setPreviousValue(null);
+    setOperator(null);
+    setWaitingForNewValue(false);
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    if (waitingForNewValue) return;
+    setDisplayValue(displayValue.length > 1 ? displayValue.slice(0, -1) : '0');
+  }, [displayValue, waitingForNewValue]);
+
+  const handlePercent = useCallback(() => {
+    const val = parseFloat(displayValue);
+    setDisplayValue(String(val / 100));
+  }, [displayValue]);
+
+  const handleSign = useCallback(() => {
+    const val = parseFloat(displayValue);
+    setDisplayValue(String(val * -1));
+  }, [displayValue]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (e.key >= '0' && e.key <= '9') {
+        handleNum(e.key);
+      } else if (e.key === '.' || e.key === ',') {
+        handleDot();
+      } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+        handleOp(e.key);
+      } else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        handleEqual();
+      } else if (e.key === 'Backspace') {
+        handleDelete();
+      } else if (e.key === 'Escape' || e.key === 'Delete') {
+        handleClear();
+      } else if (e.key === '%') {
+        handlePercent();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleNum, handleDot, handleOp, handleEqual, handleDelete, handleClear, handlePercent]);
+
+  return (
+    <div className={layoutClass}>
+      <div className="flex flex-col gap-3 w-full col-span-1">
+        <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.classicCalc.title}</h2>
+        <ResultCard>
+          <div className="flex flex-col items-end pt-2 pb-1 min-h-[80px] justify-end">
+            <div className="text-slate-500 dark:text-slate-400 text-sm h-5 font-medium">
+              {previousValue != null ? `${previousValue} ${operator}` : ''}
+            </div>
+            <span className="text-5xl font-bold text-slate-800 dark:text-white tracking-tight leading-none break-all text-right mt-1">
+              {displayValue}
+            </span>
+          </div>
+        </ResultCard>
+      </div>
+
+      <div className="flex flex-col gap-3 mt-auto">
+        <div className="grid grid-cols-4 gap-2">
+          {/* Row 1 */}
+          <button onClick={handleClear} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">AC</button>
+          <button onClick={handleSign} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">+/-</button>
+          <button onClick={handlePercent} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">%</button>
+          <button onClick={() => handleOp('/')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '/' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>÷</button>
+          
+          {/* Row 2 */}
+          <button onClick={() => handleNum('7')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">7</button>
+          <button onClick={() => handleNum('8')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">8</button>
+          <button onClick={() => handleNum('9')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">9</button>
+          <button onClick={() => handleOp('*')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '*' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>×</button>
+
+          {/* Row 3 */}
+          <button onClick={() => handleNum('4')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">4</button>
+          <button onClick={() => handleNum('5')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">5</button>
+          <button onClick={() => handleNum('6')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">6</button>
+          <button onClick={() => handleOp('-')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '-' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>−</button>
+
+          {/* Row 4 */}
+          <button onClick={() => handleNum('1')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">1</button>
+          <button onClick={() => handleNum('2')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">2</button>
+          <button onClick={() => handleNum('3')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">3</button>
+          <button onClick={() => handleOp('+')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '+' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>+</button>
+
+          {/* Row 5 */}
+          <button onClick={() => handleNum('0')} className="col-span-2 p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all text-left pl-8">0</button>
+          <button onClick={handleDot} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">.</button>
+          <button onClick={handleEqual} className="p-4 rounded-2xl bg-orange-500 text-white font-bold text-2xl active:scale-95 transition-all">=</button>
+        </div>
+        <BackButton onClick={onBack} label={t.common.back} />
+      </div>
+    </div>
+  );
+};
+
 // --- Main App Component ---
 
 const App: React.FC = () => {
@@ -922,6 +1116,10 @@ const App: React.FC = () => {
           
           {currentView === AppView.MARGIN_CALC && (
              <MarginCalc currency={settings.currency} t={t} onBack={handleBack} />
+          )}
+
+          {currentView === AppView.CLASSIC_CALC && (
+             <ClassicCalc t={t} onBack={handleBack} />
           )}
 
           {currentView === AppView.SETTINGS && (

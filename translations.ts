@@ -15,6 +15,8 @@ export const translations = {
       marginSub: "Profit calculation",
       currency: "Currency Converter",
       currencySub: "USD, EUR, PLN <-> UAH",
+      classicCalc: "Calculator",
+      classicCalcSub: "Standard calculator",
       settings: "Settings",
       settingsSub: "Language & Theme"
     },
@@ -92,6 +94,9 @@ export const translations = {
       result: "Result",
       emptyState: "Enter amount",
       date: "from"
+    },
+    classicCalc: {
+      title: "Calculator"
     }
   },
   ru: {
@@ -110,6 +115,8 @@ export const translations = {
       marginSub: "Расчет прибыли",
       currency: "Конвертер валют",
       currencySub: "USD, EUR, PLN <-> UAH",
+      classicCalc: "Калькулятор",
+      classicCalcSub: "Обычный калькулятор",
       settings: "Настройки",
       settingsSub: "Язык и тема"
     },
@@ -187,6 +194,9 @@ export const translations = {
       result: "Результат",
       emptyState: "Введите сумму",
       date: "от"
+    },
+    classicCalc: {
+      title: "Калькулятор"
     }
   },
   uk: {
@@ -205,6 +215,8 @@ export const translations = {
       marginSub: "Розрахунок прибутку",
       currency: "Конвертер валют",
       currencySub: "USD, EUR, PLN <-> UAH",
+      classicCalc: "Калькулятор",
+      classicCalcSub: "Звичайний калькулятор",
       settings: "Налаштування",
       settingsSub: "Мова та тема"
     },
@@ -282,6 +294,9 @@ export const translations = {
       result: "Результат",
       emptyState: "Введіть суму",
       date: "від"
+    },
+    classicCalc: {
+      title: "Калькулятор"
     }
   }
 };
