@@ -17,6 +17,8 @@ export const translations = {
       currencySub: "USD, EUR, PLN <-> UAH",
       classicCalc: "Calculator",
       classicCalcSub: "Standard calculator",
+      history: "History",
+      historySub: "Recent calculations",
       settings: "Settings",
       settingsSub: "Language & Theme"
     },
@@ -97,6 +99,12 @@ export const translations = {
     },
     classicCalc: {
       title: "Calculator"
+    },
+    historyView: {
+      title: "History",
+      empty: "History is empty",
+      clear: "Clear History",
+      saved: "Saved!"
     }
   },
   ru: {
@@ -117,6 +125,8 @@ export const translations = {
       currencySub: "USD, EUR, PLN <-> UAH",
       classicCalc: "Калькулятор",
       classicCalcSub: "Обычный калькулятор",
+      history: "История",
+      historySub: "Недавние расчеты",
       settings: "Настройки",
       settingsSub: "Язык и тема"
     },
@@ -197,6 +207,12 @@ export const translations = {
     },
     classicCalc: {
       title: "Калькулятор"
+    },
+    historyView: {
+      title: "История",
+      empty: "История пуста",
+      clear: "Очистить историю",
+      saved: "Сохранено!"
     }
   },
   uk: {
@@ -217,6 +233,8 @@ export const translations = {
       currencySub: "USD, EUR, PLN <-> UAH",
       classicCalc: "Калькулятор",
       classicCalcSub: "Звичайний калькулятор",
+      history: "Історія",
+      historySub: "Недавні розрахунки",
       settings: "Налаштування",
       settingsSub: "Мова та тема"
     },
@@ -297,6 +315,12 @@ export const translations = {
     },
     classicCalc: {
       title: "Калькулятор"
+    },
+    historyView: {
+      title: "Історія",
+      empty: "Історія порожня",
+      clear: "Очистити історію",
+      saved: "Збережено!"
     }
   }
 };

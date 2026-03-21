@@ -869,89 +869,59 @@ const ReverseCalc: React.FC<{ currency: string, t: Translation, onBack: () => vo
 };
 
 const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBack }) => {
-  const [displayValue, setDisplayValue] = useState('0');
-  const [previousValue, setPreviousValue] = useState<string | null>(null);
-  const [operator, setOperator] = useState<string | null>(null);
-  const [waitingForNewValue, setWaitingForNewValue] = useState(false);
+  const [expression, setExpression] = useState('');
+  const [result, setResult] = useState<string | null>(null);
 
-  const handleNum = useCallback((numStr: string) => {
-    if (waitingForNewValue) {
-      setDisplayValue(numStr);
-      setWaitingForNewValue(false);
+  const handleInput = useCallback((char: string) => {
+    if (result !== null) {
+      if (result === 'Error') {
+        setExpression(char);
+      } else if (/[0-9.]/.test(char)) {
+        setExpression(char);
+      } else {
+        setExpression(result + char);
+      }
+      setResult(null);
     } else {
-      setDisplayValue(displayValue === '0' ? numStr : displayValue + numStr);
+      setExpression(prev => prev + char);
     }
-  }, [displayValue, waitingForNewValue]);
-
-  const handleDot = useCallback(() => {
-    if (waitingForNewValue) {
-      setDisplayValue('0.');
-      setWaitingForNewValue(false);
-    } else if (!displayValue.includes('.')) {
-      setDisplayValue(displayValue + '.');
-    }
-  }, [displayValue, waitingForNewValue]);
-
-  const calculate = (prev: number, next: number, op: string) => {
-    if (op === '+') return prev + next;
-    if (op === '-') return prev - next;
-    if (op === '*') return prev * next;
-    if (op === '/') return prev / next;
-    return next;
-  };
-
-  const handleOp = useCallback((nextOperator: string) => {
-    if (waitingForNewValue && operator) {
-      setOperator(nextOperator);
-      return;
-    }
-
-    const inputValue = parseFloat(displayValue);
-
-    if (previousValue == null) {
-      setPreviousValue(displayValue);
-    } else if (operator) {
-      const currentValue = previousValue || 0;
-      const newValue = calculate(parseFloat(currentValue as string), inputValue, operator);
-      setDisplayValue(String(newValue));
-      setPreviousValue(String(newValue));
-    }
-
-    setWaitingForNewValue(true);
-    setOperator(nextOperator);
-  }, [displayValue, previousValue, operator, waitingForNewValue]);
+  }, [result]);
 
   const handleEqual = useCallback(() => {
-    if (!operator || previousValue == null) return;
-    const inputValue = parseFloat(displayValue);
-    const newValue = calculate(parseFloat(previousValue), inputValue, operator);
-    setDisplayValue(String(newValue));
-    setPreviousValue(null);
-    setOperator(null);
-    setWaitingForNewValue(true);
-  }, [displayValue, previousValue, operator]);
+    if (!expression) return;
+    try {
+      let safeExpr = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+      safeExpr = safeExpr.replace(/%/g, '/100');
+      
+      if (!/^[0-9+\-*/(). ]+$/.test(safeExpr)) {
+        setResult('Error');
+        return;
+      }
+      
+      const res = new Function('return ' + safeExpr)();
+      if (!isFinite(res) || isNaN(res)) {
+        setResult('Error');
+      } else {
+        setResult(String(Math.round(res * 100000000) / 100000000));
+      }
+    } catch (e) {
+      setResult('Error');
+    }
+  }, [expression]);
 
   const handleClear = useCallback(() => {
-    setDisplayValue('0');
-    setPreviousValue(null);
-    setOperator(null);
-    setWaitingForNewValue(false);
+    setExpression('');
+    setResult(null);
   }, []);
 
   const handleDelete = useCallback(() => {
-    if (waitingForNewValue) return;
-    setDisplayValue(displayValue.length > 1 ? displayValue.slice(0, -1) : '0');
-  }, [displayValue, waitingForNewValue]);
-
-  const handlePercent = useCallback(() => {
-    const val = parseFloat(displayValue);
-    setDisplayValue(String(val / 100));
-  }, [displayValue]);
-
-  const handleSign = useCallback(() => {
-    const val = parseFloat(displayValue);
-    setDisplayValue(String(val * -1));
-  }, [displayValue]);
+    if (result !== null) {
+      setExpression('');
+      setResult(null);
+    } else {
+      setExpression(prev => prev.slice(0, -1));
+    }
+  }, [result]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -959,11 +929,16 @@ const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBa
         return;
       }
       if (e.key >= '0' && e.key <= '9') {
-        handleNum(e.key);
+        handleInput(e.key);
       } else if (e.key === '.' || e.key === ',') {
-        handleDot();
+        handleInput('.');
       } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
-        handleOp(e.key);
+        const opMap: Record<string, string> = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+        handleInput(opMap[e.key]);
+      } else if (e.key === '(' || e.key === ')') {
+        handleInput(e.key);
+      } else if (e.key === '%') {
+        handleInput('%');
       } else if (e.key === 'Enter' || e.key === '=') {
         e.preventDefault();
         handleEqual();
@@ -971,13 +946,13 @@ const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBa
         handleDelete();
       } else if (e.key === 'Escape' || e.key === 'Delete') {
         handleClear();
-      } else if (e.key === '%') {
-        handlePercent();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNum, handleDot, handleOp, handleEqual, handleDelete, handleClear, handlePercent]);
+  }, [handleInput, handleEqual, handleDelete, handleClear]);
+
+  const displayValue = result !== null ? result : (expression || '0');
 
   return (
     <div className={layoutClass}>
@@ -985,8 +960,8 @@ const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBa
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.classicCalc.title}</h2>
         <ResultCard>
           <div className="flex flex-col items-end pt-2 pb-1 min-h-[80px] justify-end">
-            <div className="text-slate-500 dark:text-slate-400 text-sm h-5 font-medium">
-              {previousValue != null ? `${previousValue} ${operator}` : ''}
+            <div className="text-slate-500 dark:text-slate-400 text-sm h-5 font-medium tracking-wider">
+              {result !== null ? expression + ' =' : ''}
             </div>
             <span className="text-5xl font-bold text-slate-800 dark:text-white tracking-tight leading-none break-all text-right mt-1">
               {displayValue}
@@ -999,31 +974,32 @@ const ClassicCalc: React.FC<{ t: Translation, onBack: () => void }> = ({ t, onBa
         <div className="grid grid-cols-4 gap-2">
           {/* Row 1 */}
           <button onClick={handleClear} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">AC</button>
-          <button onClick={handleSign} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">+/-</button>
-          <button onClick={handlePercent} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">%</button>
-          <button onClick={() => handleOp('/')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '/' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>÷</button>
+          <button onClick={() => handleInput('(')} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">(</button>
+          <button onClick={() => handleInput(')')} className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-bold text-xl active:scale-95 transition-all">)</button>
+          <button onClick={() => handleInput('÷')} className="p-4 rounded-2xl bg-orange-500 text-white font-bold text-xl active:scale-95 transition-all">÷</button>
           
           {/* Row 2 */}
-          <button onClick={() => handleNum('7')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">7</button>
-          <button onClick={() => handleNum('8')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">8</button>
-          <button onClick={() => handleNum('9')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">9</button>
-          <button onClick={() => handleOp('*')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '*' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>×</button>
+          <button onClick={() => handleInput('7')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">7</button>
+          <button onClick={() => handleInput('8')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">8</button>
+          <button onClick={() => handleInput('9')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">9</button>
+          <button onClick={() => handleInput('×')} className="p-4 rounded-2xl bg-orange-500 text-white font-bold text-xl active:scale-95 transition-all">×</button>
 
           {/* Row 3 */}
-          <button onClick={() => handleNum('4')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">4</button>
-          <button onClick={() => handleNum('5')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">5</button>
-          <button onClick={() => handleNum('6')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">6</button>
-          <button onClick={() => handleOp('-')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '-' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>−</button>
+          <button onClick={() => handleInput('4')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">4</button>
+          <button onClick={() => handleInput('5')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">5</button>
+          <button onClick={() => handleInput('6')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">6</button>
+          <button onClick={() => handleInput('−')} className="p-4 rounded-2xl bg-orange-500 text-white font-bold text-xl active:scale-95 transition-all">−</button>
 
           {/* Row 4 */}
-          <button onClick={() => handleNum('1')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">1</button>
-          <button onClick={() => handleNum('2')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">2</button>
-          <button onClick={() => handleNum('3')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">3</button>
-          <button onClick={() => handleOp('+')} className={`p-4 rounded-2xl font-bold text-xl active:scale-95 transition-all ${operator === '+' ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>+</button>
+          <button onClick={() => handleInput('1')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">1</button>
+          <button onClick={() => handleInput('2')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">2</button>
+          <button onClick={() => handleInput('3')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">3</button>
+          <button onClick={() => handleInput('+')} className="p-4 rounded-2xl bg-orange-500 text-white font-bold text-xl active:scale-95 transition-all">+</button>
 
           {/* Row 5 */}
-          <button onClick={() => handleNum('0')} className="col-span-2 p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all text-left pl-8">0</button>
-          <button onClick={handleDot} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">.</button>
+          <button onClick={() => handleInput('0')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">0</button>
+          <button onClick={() => handleInput('.')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">.</button>
+          <button onClick={() => handleInput('%')} className="p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 text-slate-800 dark:text-white font-bold text-2xl active:scale-95 transition-all">%</button>
           <button onClick={handleEqual} className="p-4 rounded-2xl bg-orange-500 text-white font-bold text-2xl active:scale-95 transition-all">=</button>
         </div>
         <BackButton onClick={onBack} label={t.common.back} />
