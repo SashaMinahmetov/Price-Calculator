@@ -182,73 +182,163 @@ const ResultCard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const layoutClass = "flex flex-col h-full gap-3";
 
 const DiscountCalc: React.FC<{ currency: string, t: Translation, onBack: () => void }> = ({ currency, t, onBack }) => {
-  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext } = useCalculatorInput(
-    { price: '', discount: '' }, 
+  const [mode, setMode] = useState<'PRICE_MODE' | 'PERCENT_MODE'>('PRICE_MODE');
+  const fields = mode === 'PRICE_MODE' ? ['price', 'discount'] : ['priceBefore', 'priceAfter'];
+
+  const { values, activeField, setActiveField, handleKeyPress, handleDelete, handleNext, setValues } = useCalculatorInput(
+    { price: '', discount: '', priceBefore: '', priceAfter: '' }, 
     'price',
-    ['price', 'discount']
+    fields
   );
 
+  const toggleMode = (newMode: 'PRICE_MODE' | 'PERCENT_MODE') => {
+    setMode(newMode);
+    if (newMode === 'PRICE_MODE') {
+      setActiveField('price');
+    } else {
+      setActiveField('priceBefore');
+    }
+  };
+
+  // Mode 1: Price and %
   const numPrice = parseFloat(values.price) || 0;
   const numDiscount = parseFloat(values.discount) || 0;
   
   const finalPrice = numPrice * (1 - numDiscount / 100);
   const saved = numPrice - finalPrice;
 
+  // Mode 2: Before and After
+  const numPriceBefore = parseFloat(values.priceBefore) || 0;
+  const numPriceAfter = parseFloat(values.priceAfter) || 0;
+
+  const calculatedDiscount = numPriceBefore > 0 
+    ? Math.max(0, ((numPriceBefore - numPriceAfter) / numPriceBefore) * 100)
+    : 0;
+  const savedPercentMode = numPriceBefore > numPriceAfter ? numPriceBefore - numPriceAfter : 0;
+
   return (
     <div className={layoutClass}>
       <div className="flex flex-col gap-3 w-full col-span-1">
         <h2 className="text-xl font-bold text-center text-slate-800 dark:text-white/90">{t.discountCalc.title}</h2>
         
+        {/* Mode Selector Toggle */}
+        <div className="grid grid-cols-2 gap-1 p-1 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md rounded-xl border border-white/30 dark:border-white/5 mb-1 shrink-0">
+          <button
+            onClick={() => toggleMode('PRICE_MODE')}
+            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+              mode === 'PRICE_MODE' 
+                ? 'bg-blue-600 text-white shadow-md' 
+                : 'text-slate-500 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30'
+            }`}
+          >
+            <Percent size={14} />
+            {t.discountCalc.modeStandard}
+          </button>
+          <button
+            onClick={() => toggleMode('PERCENT_MODE')}
+            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+              mode === 'PERCENT_MODE' 
+                ? 'bg-blue-600 text-white shadow-md' 
+                : 'text-slate-500 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30'
+            }`}
+          >
+            <Percent size={14} />
+            {t.discountCalc.modePercent}
+          </button>
+        </div>
+
         <ResultCard>
-            <div className="flex flex-col items-center pt-1 pb-0.5">
-                <div className="flex items-center gap-2 mb-0.5 opacity-80">
-                     <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">{t.reverseCalc.regularPrice}</span>
-                     <span className="text-base font-medium text-slate-400 line-through decoration-red-500/60 decoration-2">
-                        {numPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
-                     </span>
-                </div>
+          {mode === 'PRICE_MODE' ? (
+            <div className="flex flex-col items-center pt-1 pb-0.5 animate-in fade-in">
+              <div className="flex items-center gap-2 mb-0.5 opacity-80">
+                <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">{t.reverseCalc.regularPrice}</span>
+                <span className="text-base font-medium text-slate-400 line-through decoration-red-500/60 decoration-2">
+                  {numPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
+                </span>
+              </div>
 
-                <span className="text-4xl font-bold text-green-500 dark:text-green-400 tracking-tight leading-none mb-0.5 drop-shadow-sm">
-                    {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{currency}</span>
-                </span>
-                <span className="text-slate-500 uppercase font-bold tracking-wider opacity-60 text-[10px]">
-                    {t.discountCalc.finalPrice}
-                </span>
+              <span className="text-4xl font-bold text-green-500 dark:text-green-400 tracking-tight leading-none mb-0.5 drop-shadow-sm">
+                {finalPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-2xl">{currency}</span>
+              </span>
+              <span className="text-slate-500 uppercase font-bold tracking-wider opacity-60 text-[10px]">
+                {t.discountCalc.finalPrice}
+              </span>
             </div>
-            
-            <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 my-2"></div>
+          ) : (
+            <div className="flex flex-col items-center pt-1 pb-0.5 animate-in fade-in">
+              <div className="flex items-center gap-2 mb-0.5 opacity-80">
+                <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">{t.discountCalc.priceBeforeLabel}</span>
+                <span className="text-base font-medium text-slate-400 line-through decoration-red-500/60 decoration-2">
+                  {numPriceBefore.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
+                </span>
+              </div>
 
-            <div className="flex justify-between items-center text-sm px-1">
-                <span className="text-slate-500 dark:text-slate-400 font-medium">{t.common.save}</span>
-                <span className="font-bold text-blue-500 dark:text-blue-400">
-                    {saved.toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
-                </span>
+              <span className="text-4xl font-bold text-green-500 dark:text-green-400 tracking-tight leading-none mb-0.5 drop-shadow-sm">
+                {calculatedDiscount.toLocaleString(undefined, { maximumFractionDigits: 1 })} <span className="text-2xl">%</span>
+              </span>
+              <span className="text-slate-500 uppercase font-bold tracking-wider opacity-60 text-[10px]">
+                {t.discountCalc.calculatedDiscount}
+              </span>
             </div>
+          )}
+          
+          <div className="w-full h-px bg-slate-200/60 dark:bg-white/10 my-2"></div>
+
+          <div className="flex justify-between items-center text-sm px-1">
+            <span className="text-slate-500 dark:text-slate-400 font-medium">{t.common.save}</span>
+            <span className="font-bold text-blue-500 dark:text-blue-400">
+              {(mode === 'PRICE_MODE' ? saved : savedPercentMode).toLocaleString(undefined, { maximumFractionDigits: 2 })} {currency}
+            </span>
+          </div>
         </ResultCard>
       </div>
 
       <div className="flex flex-col gap-3 w-full col-span-1">
-        <div className="grid grid-cols-2 gap-3">
-             <Input 
-                label={t.discountCalc.priceLabel}
-                placeholder="" 
-                value={values.price}
-                isActive={activeField === 'price'}
-                onInputClick={() => setActiveField('price')}
-                suffix={currency}
-                className="col-span-2"
-                autoFocus
+        {mode === 'PRICE_MODE' ? (
+          <div className="grid grid-cols-2 gap-3" key="price_mode_inputs">
+            <Input 
+              label={t.discountCalc.priceLabel}
+              placeholder="" 
+              value={values.price}
+              isActive={activeField === 'price'}
+              onInputClick={() => setActiveField('price')}
+              suffix={currency}
+              className="col-span-2"
+              autoFocus
             />
             <Input 
-                label={t.discountCalc.discountLabel}
-                placeholder="" 
-                value={values.discount}
-                isActive={activeField === 'discount'}
-                onInputClick={() => setActiveField('discount')}
-                suffix="%"
-                className="col-span-2"
+              label={t.discountCalc.discountLabel}
+              placeholder="" 
+              value={values.discount}
+              isActive={activeField === 'discount'}
+              onInputClick={() => setActiveField('discount')}
+              suffix="%"
+              className="col-span-2"
             />
-        </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3" key="percent_mode_inputs">
+            <Input 
+              label={t.discountCalc.priceBeforeLabel}
+              placeholder="" 
+              value={values.priceBefore}
+              isActive={activeField === 'priceBefore'}
+              onInputClick={() => setActiveField('priceBefore')}
+              suffix={currency}
+              className="col-span-2"
+              autoFocus
+            />
+            <Input 
+              label={t.discountCalc.priceAfterLabel}
+              placeholder="" 
+              value={values.priceAfter}
+              isActive={activeField === 'priceAfter'}
+              onInputClick={() => setActiveField('priceAfter')}
+              suffix={currency}
+              className="col-span-2"
+            />
+          </div>
+        )}
         
         <NumericKeypad onKeyPress={handleKeyPress} onDelete={handleDelete} />
         <NavigationButtons onBack={onBack} onNext={handleNext} t={t} />
@@ -350,28 +440,31 @@ const CurrencyConverter: React.FC<{ t: Translation, onBack: () => void }> = ({ t
     const performFetch = async (currencyCode: string) => {
         setLoading(true);
         try {
-            const date = new Date();
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const dateParam = `${year}${month}${day}`;
-
-            let response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${currencyCode}&date=${dateParam}&json`);
-            let data;
+            const response = await fetch(`https://open.er-api.com/v6/latest/UAH`);
             if (response.ok) {
-                data = await response.json();
+                const data = await response.json();
+                if (data && data.rates && data.rates[currencyCode]) {
+                    const rateInUah = 1 / data.rates[currencyCode];
+                    setValues(prev => ({ ...prev, rate: rateInUah.toFixed(2) }));
+                    
+                    if (data.time_last_update_utc) {
+                        // Extract only "Thu, 28 May 2026" or similar from update string
+                        const dateParts = data.time_last_update_utc.split(' ');
+                        const dateStr = dateParts.slice(0, 4).join(' ');
+                        setRateDate(dateStr);
+                    }
+                    return;
+                }
             }
 
-            if (!data || data.length === 0) {
-                 response = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${currencyCode}&json`);
-                 if (response.ok) {
-                    data = await response.json();
-                 }
-            }
-
-            if (data && data[0]) {
-                if (data[0].rate) setValues(prev => ({ ...prev, rate: data[0].rate.toFixed(2) }));
-                if (data[0].exchangedate) setRateDate(data[0].exchangedate);
+            // Fallback to official NBU API
+            const fallbackResponse = await fetch(`https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=${currencyCode}&json`);
+            if (fallbackResponse.ok) {
+                const data = await fallbackResponse.json();
+                if (data && data[0]) {
+                    if (data[0].rate) setValues(prev => ({ ...prev, rate: data[0].rate.toFixed(2) }));
+                    if (data[0].exchangedate) setRateDate(data[0].exchangedate);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch rate", error);

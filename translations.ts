@@ -39,7 +39,12 @@ export const translations = {
       priceLabel: "Shelf Price",
       discountLabel: "Discount (%)",
       finalPrice: "Discounted Price",
-      emptyState: "Enter price & %"
+      emptyState: "Enter price & %",
+      modeStandard: "Find Price",
+      modePercent: "Find Discount %",
+      priceBeforeLabel: "Price Before",
+      priceAfterLabel: "Price After",
+      calculatedDiscount: "Calculated Discount"
     },
     promoCalc: {
       title: "Promo N+X",
@@ -143,11 +148,16 @@ export const translations = {
       next: "Далее"
     },
     discountCalc: {
-      title: "Калькулятор скидки",
-      priceLabel: "Цена на полке",
-      discountLabel: "Скидка (%)",
-      finalPrice: "Цена со скидкой",
-      emptyState: "Введите цену и %"
+       title: "Калькулятор скидки",
+       priceLabel: "Цена на полке",
+       discountLabel: "Скидка (%)",
+       finalPrice: "Цена со скидкой",
+       emptyState: "Введите цену и %",
+       modeStandard: "Найти цену",
+       modePercent: "Найти % скидки",
+       priceBeforeLabel: "Цена до скидки",
+       priceAfterLabel: "Цена после скидки",
+       calculatedDiscount: "Полученная скидка"
     },
     promoCalc: {
       title: "Акция N+X",
@@ -255,7 +265,12 @@ export const translations = {
       priceLabel: "Ціна на полиці",
       discountLabel: "Знижка (%)",
       finalPrice: "Ціна зі знижкою",
-      emptyState: "Введіть ціну та %"
+      emptyState: "Введіть ціну та %",
+      modeStandard: "Знайти ціну",
+      modePercent: "Знайти % знижки",
+      priceBeforeLabel: "Ціна до знижки",
+      priceAfterLabel: "Ціна після знижки",
+      calculatedDiscount: "Отримана знижка"
     },
     promoCalc: {
       title: "Акція N+X",
